@@ -1,0 +1,12 @@
+{
+  "ip": "localhost",
+  "port": 3333,
+  "user": "root",
+  "password": "spidermonkey",
+  "schema": "employees",
+  "icdbSchema": "employees_icdb_rsa_tuple",
+  "algorithm": "RSA",
+  "granularity": "TUPLE",
+  "macKey": "qyPTqFrPGUpxcIo9sz2MdQ==",
+  "rsaKeyFile": "key.pem"
+}
