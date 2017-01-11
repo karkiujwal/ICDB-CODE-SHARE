@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -91,7 +92,7 @@ public class FileConverter {
 
 	private Stream<List<String>> convertLineOCF(Stream<List<String>> csvInput, String tablename) throws IOException {
 
-
+		primarykeyIndexes.clear();
      List<String> collector = new ArrayList<>();
 		String[] table =tablename.split("\\.");
 
@@ -99,7 +100,10 @@ public class FileConverter {
 
 	    	//get the primarykey index from the csv header i.e, first line
 			if(primarykeyIndexes.size()<=0){
-				getprimaryKeyIndex(line,db.getPrimaryKeys(table[0]));
+				List<String>primaryKeysList=db.getPrimaryKeys(table[0]);
+				Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
+				getprimaryKeyIndex(line,primaryKeysList);
+				;
 			}
 			collector.clear();
             collector.addAll(line);
@@ -109,6 +113,7 @@ public class FileConverter {
 					field=field.concat(line.get(index));
 				}
 				field=field.concat(table[0]);
+
                 final byte[] dataBytes = field.getBytes(Charsets.UTF_8);
                 convertLine(collector, dataBytes, codeGen, icrl);
             }

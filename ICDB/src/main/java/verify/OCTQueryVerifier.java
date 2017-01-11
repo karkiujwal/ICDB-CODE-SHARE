@@ -121,23 +121,20 @@ public class OCTQueryVerifier extends QueryVerifier {
         final StringBuilder builder = new StringBuilder();
 
         int index = 0;
-        boolean isSkip = false;
         for (Field<?> attr : record.fields()) {
 
-            if (!attr.getName().equals("ic") && !attr.getName().equals("serial")) {
+            if (!attr.getName().equals("serial")) {
                 final Object value = record.get(index);
                 builder.append(value);
 
                 index++;
-                if (isSkip)
-                    isSkip = false;
+
 
             } else {
-                if (isSkip)
-                    continue;
 
-                final byte[] signature = (byte[]) record.get(index);
-                final long serial = (long) record.get(index + 1);
+
+               // final byte[] signature = (byte[]) record.get(index);
+                final long serial = (long) record.get(index );
                 final byte[] serialBytes = ByteBuffer.allocate(8).putLong(serial).array();
 
                  String data = builder.toString();
@@ -156,25 +153,40 @@ public class OCTQueryVerifier extends QueryVerifier {
 
                 RSASHA1Signer signer=new RSASHA1Signer(key.getModulus(),key.getExponent());
                 message = message.multiply(new BigInteger(signer.computehash(allData))).mod(key.getModulus());
-                sig = sig.multiply(new BigInteger(signature)).mod(key.getModulus());
+               // sig = sig.multiply(new BigInteger(signature)).mod(key.getModulus());
 
-                if (record.size() == index + 2)
+                //for join queries
+                if (record.size() == index + 1)
                     break;
                 else {
-                    isSkip = true;
-                    index += 2;
+
+                    index ++;
                 }
             }
 
         }
 
 
-
-        // final boolean verified = codeGen.verify(message.toByteArray(), sig.toByteArray());
-
-
         return  true;
     }
+
+    @Override
+    protected boolean aggregateSignatureGenerator(Record record, ICDBQuery icdbQuery) {
+
+        final StringBuilder builder = new StringBuilder();
+
+        int index = 0;
+        for (Field<?> attr : record.fields()) {
+
+            final byte[] signature = (byte[]) record.get(index);
+            sig = sig.multiply(new BigInteger(signature)).mod(key.getModulus());
+
+            index++;
+        }
+        return true;
+
+    }
+
 
 
 }

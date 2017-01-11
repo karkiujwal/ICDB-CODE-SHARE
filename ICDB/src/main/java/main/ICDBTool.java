@@ -136,6 +136,9 @@ public class ICDBTool {
 
             logger.info("Converted query:");
             logger.info(Format.limit(icdbQuery.getConvertedQuery()));
+
+            logger.info("Aggregate Verification query:");
+            logger.info(Format.limit(icdbQuery.getAggregateQuery()));
         });
     }
 

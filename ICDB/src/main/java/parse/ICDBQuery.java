@@ -49,6 +49,7 @@ public abstract class ICDBQuery {
     private final String originalQuery;   // The original query (SELECT, INSERT, DELETE, etc.)
     private String convertedQuery;  // The converted query, like the original, but with extra columns
     private String verifyQuery;     // A select query responsible for obtaining verification results
+    private String aggregateQuery;
     public List<String> queryTableName= new ArrayList<>();
 
     protected AbstractIcrl icrl = Icrl.Companion.getIcrl();
@@ -74,6 +75,7 @@ public abstract class ICDBQuery {
         Stopwatch queryConversionTime = Stopwatch.createStarted();
         this.verifyQuery = parse(originalQuery, QueryType.VERIFY);
         this.convertedQuery = parse(originalQuery, QueryType.CONVERT);
+        this.aggregateQuery = parse(originalQuery, QueryType.AGGREGATE);
 
         statistics.setQueryConversionTime(queryConversionTime.elapsed(ICDBTool.TIME_UNIT));
         logger.debug("Query conversion time: {}", statistics.getQueryConversionTime());
@@ -117,6 +119,12 @@ public abstract class ICDBQuery {
     protected abstract Statement parseVerifyQuery(Insert insert);
     protected abstract Statement parseVerifyQuery(Delete delete);
     protected abstract Statement parseVerifyQuery(Update update);
+
+    //ASV=aggregate signature verification
+    protected abstract Statement parseASVQuery(Select select);
+    protected abstract Statement parseASVQuery(Insert insert);
+    protected abstract Statement parseASVQuery(Delete delete);
+    protected abstract Statement parseASVQuery(Update update);
 
     // TODO: This is a temporary workaround. A better solution would be to pass a context object around with the results.
     protected Result<Record> deleteSelectResults;
@@ -207,6 +215,10 @@ public abstract class ICDBQuery {
         return verifyQuery;
     }
 
+    public String getAggregateQuery() {
+        return aggregateQuery;
+    }
+
     /**
      * @return true if this query needs verification
      */
@@ -260,6 +272,28 @@ public abstract class ICDBQuery {
             public Statement parseQuery(Update update, ICDBQuery icdbQuery) {
                 return icdbQuery.parseVerifyQuery(update);
             }
+        },
+
+        AGGREGATE {
+                @Override
+                public Statement parseQuery(Select select, ICDBQuery icdbQuery) {
+                    return icdbQuery.parseASVQuery(select);
+                }
+
+                @Override
+                public Statement parseQuery(Insert insert, ICDBQuery icdbQuery) {
+                    return icdbQuery.parseASVQuery(insert);
+                }
+
+                @Override
+                public Statement parseQuery(Delete delete, ICDBQuery icdbQuery) {
+                    return icdbQuery.parseASVQuery(delete);
+                }
+
+                @Override
+                public Statement parseQuery(Update update, ICDBQuery icdbQuery) {
+                    return icdbQuery.parseASVQuery(update);
+                }
         };
 
         public abstract Statement parseQuery(Select select, ICDBQuery icdbQuery);

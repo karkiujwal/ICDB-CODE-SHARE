@@ -1,5 +1,6 @@
 package parse;
 
+import crypto.AlgorithmType;
 import crypto.CodeGen;
 import crypto.Convert;
 import com.google.common.base.Charsets;
@@ -81,8 +82,21 @@ public class OCTQuery extends ICDBQuery {
             }
         }
 
+
+
         List<SelectItem> selectList = new ArrayList<>();
-        selectList.add(new AllColumns());
+
+
+        //if RSA_Aggregate, exclude the IC column (ic is handled by aggregate signature generator)
+        if (codeGen.getAlgorithm()== AlgorithmType.RSA_AGGREGATE){
+            List<String> fieldList=icdb.getFields(tables.get(0));
+            for (String field:fieldList) {
+                if (!field.equalsIgnoreCase("ic"))
+                selectList.add(new SelectExpressionItem(new HexValue(field)));
+            }
+        }else {
+            selectList.add(new AllColumns());
+        }
 
         // Convert query to a SELECT * to obtain all tuples
         plainSelect.setSelectItems(selectList);
@@ -92,6 +106,27 @@ public class OCTQuery extends ICDBQuery {
         // Sum, Count, Average, Min, Max
 
         return select;
+    }
+
+    /**
+     * generate aggregate signature query with only the required IC colums, here IC for the table
+     * @param select
+     * @return
+     */
+    @Override
+    protected Statement parseASVQuery(Select select) {
+        PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
+        List<SelectItem> selectItems = plainSelect.getSelectItems();
+
+        List<SelectItem> selectList = new ArrayList<>();
+        selectList.add(new SelectExpressionItem(new HexValue("ic")));
+
+
+        // Convert query to a SELECT * to obtain all tuples
+        plainSelect.setSelectItems(selectList);
+
+
+        return select; // Return the original query. // TODO: convert SELECT * to return all non-icdb columns
     }
 
     ////////////
@@ -120,6 +155,16 @@ public class OCTQuery extends ICDBQuery {
         return null; // Verifying an insert statement is not necessary
     }
 
+    /**
+     * generate aggregate signature query with only the required IC colums, here IC for the table
+     * @param insert
+     * @return
+     */
+    @Override
+    protected Statement parseASVQuery(Insert insert) {
+        return null; // Verifying an insert statement is not necessary
+    }
+
     ////////////
     // DELETE //
     ////////////
@@ -145,6 +190,33 @@ public class OCTQuery extends ICDBQuery {
 
         return select;
     }
+
+    /**
+     * generate aggregate signature query with only the required IC colums, here IC for the table
+     * @param delete
+     * @return
+     */
+    @Override
+    protected Statement parseASVQuery(Delete delete) {
+
+        // We verify delete so that we can revoke all deleted serial numbers
+        Table table = delete.getTable();
+
+        Select select = SelectUtils.buildSelectFromTableAndSelectItems(table, new AllColumns());
+        PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
+        List<SelectItem> selectItems = plainSelect.getSelectItems();
+
+        List<SelectItem> selectList = new ArrayList<>();
+        selectList.add(new SelectExpressionItem(new HexValue("ic")));
+
+
+        // Convert query to a SELECT * to obtain all tuples
+        plainSelect.setSelectItems(selectList);
+
+
+        return select; // Return the original query. // TODO: convert SELECT * to return all non-icdb columns
+    }
+
 
     ////////////
     // UPDATE //
@@ -199,6 +271,33 @@ public class OCTQuery extends ICDBQuery {
 
         return select;
     }
+
+
+    /**
+     * generate aggregate signature query with only the required IC colums, here IC for the table
+     * @param update
+     * @return
+     */
+    @Override
+    protected Statement parseASVQuery(Update update) {
+        // TODO: one select query per table
+        List<Table> tables = update.getTables();
+
+        Select select = SelectUtils.buildSelectFromTableAndSelectItems(tables.get(0), new AllColumns());
+        PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
+        List<SelectItem> selectItems = plainSelect.getSelectItems();
+
+        List<SelectItem> selectList = new ArrayList<>();
+        selectList.add(new SelectExpressionItem(new HexValue("ic")));
+
+
+        // Convert query to a SELECT * to obtain all tuples
+        plainSelect.setSelectItems(selectList);
+
+
+        return select; // Return the original query. // TODO: convert SELECT * to return all non-icdb columns
+    }
+
 
     /**
      * Generates a serial number and signature, and adds them to the list of expressions

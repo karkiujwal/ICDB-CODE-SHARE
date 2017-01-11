@@ -1,5 +1,6 @@
 package parse;
 
+import crypto.AlgorithmType;
 import crypto.CodeGen;
 import crypto.Convert;
 import com.google.common.base.Charsets;
@@ -35,6 +36,7 @@ import java.util.stream.Collectors;
  * @author Dan Kondratyuk
  */
 public class OCFQuery extends ICDBQuery {
+    private boolean skipFilter=false;
 
     public OCFQuery(String query, DBConnection icdb, CodeGen codeGen, RunStatistics statistics) {
         super(query, icdb, codeGen, statistics);
@@ -59,8 +61,9 @@ public class OCFQuery extends ICDBQuery {
         List<SelectItem> selectItems = plainSelect.getSelectItems();
 
         // If SELECT *, the verify query is the same, and if join with *, rearrange fields of both tables combined
+        //note: conditions disabled for consistency with RSA_Aggregate!!
         if (selectItems.get(0) instanceof AllColumns ) {
-            if (plainSelect.getJoins()!=null){
+            if (plainSelect.getJoins()!=null || plainSelect.getJoins()==null){
                 selectItems.clear();
 
                 for (String table:tables) {
@@ -106,6 +109,45 @@ public class OCFQuery extends ICDBQuery {
         List<SelectItem> signatureItems = getICSelectItems(selectItems, Format.IC_SUFFIX, Format.SERIAL_SUFFIX);
         selectItems.addAll(signatureItems);
 
+
+        //if RSA_Aggregate, exclude the IC column (ic is handled by aggregate signature generator)
+        if (codeGen.getAlgorithm()== AlgorithmType.RSA_AGGREGATE && !skipFilter){
+            List<SelectItem> fileteredSelectItems=new ArrayList<>();
+            final int dataSize = selectItems.size() / 3;
+            for (int i = 0; i < dataSize; i++) {
+                //add columns
+                fileteredSelectItems.add(selectItems.get(i));
+            }
+            for (int i = 0; i < dataSize; i++) {
+                //add serials
+                fileteredSelectItems.add(selectItems.get(dataSize + 2 * i + 1));
+            }
+            selectItems.clear();
+            selectItems.addAll(fileteredSelectItems);
+        }
+
+        return select;
+    }
+    @Override
+    protected Statement parseASVQuery(Select select) {
+        //skip the filter in verifyquery to get the original verify query
+        skipFilter=true;
+
+        Statement tempStmt=parseVerifyQuery(select);
+        PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
+        List<SelectItem> selectItems = plainSelect.getSelectItems();
+
+        List<SelectItem> fileteredSelectItems=new ArrayList<>();
+        final int dataSize = selectItems.size() / 3;
+
+        for (int i = 0; i < dataSize; i++) {
+            //add ic
+            fileteredSelectItems.add(selectItems.get(dataSize + 2 * i ));
+        }
+        selectItems.clear();
+        selectItems.addAll(fileteredSelectItems);
+        skipFilter=false;
+
         return select;
     }
 
@@ -135,6 +177,10 @@ public class OCFQuery extends ICDBQuery {
         return null; // Verifying an insert statement is not necessary
     }
 
+    @Override
+    protected Statement parseASVQuery(Insert insert) {
+        return null;
+    }
     ////////////
     // DELETE //
     ////////////
@@ -162,6 +208,11 @@ public class OCFQuery extends ICDBQuery {
         return select;
     }
 
+    @Override
+    protected Statement parseASVQuery(Delete delete) {
+        return null;
+    }
+
     ////////////
     // UPDATE //
     ////////////
@@ -173,6 +224,11 @@ public class OCFQuery extends ICDBQuery {
 
     @Override
     protected Statement parseVerifyQuery(Update update) {
+        return null;
+    }
+
+    @Override
+    protected Statement parseASVQuery(Update update) {
         return null;
     }
 

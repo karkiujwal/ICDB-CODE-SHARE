@@ -98,26 +98,27 @@ public abstract class QueryVerifier {
         records.close();
 
         statistics.setVerificationTime(queryVerificationTime.elapsed(ICDBTool.TIME_UNIT));
-        logger.debug("Data verification time: {}", statistics.getVerificationTime());
-        logger.debug("Total query verification time: {}", totalQueryVerificationTime.elapsed(ICDBTool.TIME_UNIT));
+
 
         if (codeGen.getAlgorithm()== AlgorithmType.RSA_AGGREGATE && verified){
-
-                RSASHA1Signer signer=new RSASHA1Signer(key.getModulus(),key.getExponent());
-                BigInteger newsig= new BigInteger(signer.computeRSA(message.toByteArray()));
+            //get the records (integrity codes) to generate final aggregate signature
+            Stream<Record> AggregateRecords = DBSource.stream(icdb, icdbQuery.getAggregateQuery(), fetch);
+            //check for aggregate signature generated
+           if( isAggregateSignatureGenerated(AggregateRecords,icdbQuery)){
+               RSASHA1Signer signer=new RSASHA1Signer(key.getModulus(),key.getExponent());
+               BigInteger newsig= new BigInteger(signer.computeRSA(message.toByteArray()));
                if(Arrays.equals(newsig.toByteArray(),sig.toByteArray())){
                    logger.info("ICDB aggregate sign verified");
-                   return true;
-               }
-                if (newsig.equals(sig)){
-                    logger.info("ICDB aggregate sign verified");
-                    return true;
-                }else
-                    return false;
+                   verified= true;
+               }else verified=false;
+
+           }
+
 
         }
 
-
+        logger.debug("Data verification time: {}", statistics.getVerificationTime());
+        logger.debug("Total query verification time: {}", totalQueryVerificationTime.elapsed(ICDBTool.TIME_UNIT));
         return verified;
     }
 
@@ -175,8 +176,6 @@ public abstract class QueryVerifier {
                     .collect(Collectors.toList());
         }
 
-
-
         // Asynchronously verify all signatures
         return futures.stream()
             .allMatch(f -> {
@@ -189,10 +188,38 @@ public abstract class QueryVerifier {
             });
     }
 
+    /**
+     * Hints the completion of Aggregate Sign Generation
+     * @return true if Agg Sign generated
+     */
+    private boolean isAggregateSignatureGenerated(Stream<Record> records, ICDBQuery icdbQuery) {
+        final ForkJoinPool threadPool = threads < 1 ? new ForkJoinPool() : new ForkJoinPool(threads);
+
+        logger.debug("Using {} thread(s)", threadPool.getParallelism());
+        verifyCount = 0;
+        List<CompletableFuture<Boolean>> futures=records.map(record -> CompletableFuture.supplyAsync(() -> aggregateSignatureGenerator(record, icdbQuery), threadPool))
+                .collect(Collectors.toList());
+
+        // Asynchronously verify all signatures
+        return futures.stream()
+                .allMatch(f -> {
+                    try {
+                        statistics.setQueryFetchSize(++verifyCount);
+                        return f.get();
+                    } catch (InterruptedException | ExecutionException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+    }
+
     protected abstract boolean verifyRecord(Record record, ICDBQuery icdbQuery);
 
     //verification by using RSA homomorphic multiplication
     protected abstract boolean aggregateVerifyRecord(Record record, ICDBQuery icdbQuery) ;
+
+    //gnerates final aggregate signature by homomorphic multiplication, for RSA_AGGREGATE
+    //ASG=aggregate signature generator
+    protected abstract boolean aggregateSignatureGenerator(Record ASGrecord, ICDBQuery icdbQuery) ;
 
     /**
      * Verifies data and serial number by regenerating the signature

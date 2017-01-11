@@ -10,6 +10,7 @@ import main.args.config.UserConfig;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jooq.Field;
 import org.jooq.Record;
 import parse.ICDBQuery;
 import stats.RunStatistics;
@@ -18,6 +19,7 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -46,7 +48,9 @@ public class OCFQueryVerifier extends QueryVerifier {
              String data = record.get(i).toString();
             //concat the primary keys values
             for (String table:icdbQuery.queryTableName) {
-                for (String primarykey:icdb.getPrimaryKeys(table)) {
+                List<String>primaryKeysList=icdb.getPrimaryKeys(table);
+                Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
+                for (String primarykey:primaryKeysList) {
                     data=data.concat(record.get(primarykey).toString());
                 }
             }
@@ -78,21 +82,30 @@ public class OCFQueryVerifier extends QueryVerifier {
         return true;
     }
 
+    /**
+     * generaates aggregate value for the data(messages) to compute and verify final aggregate signature
+     * @param record
+     * @param icdbQuery
+     * @return
+     */
     @Override
     protected boolean aggregateVerifyRecord(Record record, ICDBQuery icdbQuery) {
-        final int dataSize = record.size() / 3;
+
+        final int dataSize = record.size() / 2;
         for (int i = 0; i < dataSize; i++) {
 
-            final long serial = (long) record.get(dataSize + 2 * i + 1);
-            final byte[] signature = (byte[]) record.get(dataSize + 2 * i);
+            final long serial = (long) record.get(dataSize + i);
+          //  final byte[] signature = (byte[]) record.get(dataSize + 2 * i);
              String data = record.get(i).toString();
             //concat the primary keys values
             for (String table:icdbQuery.queryTableName) {
-                for (String primarykey:icdb.getPrimaryKeys(table)) {
+
+                List<String>primaryKeysList=icdb.getPrimaryKeys(table);
+                Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
+                for (String primarykey:primaryKeysList) {
                     data=data.concat(record.get(primarykey).toString());
                 }
             }
-
 
             //concat table name to the end
             for (String table:icdbQuery.queryTableName) {
@@ -101,7 +114,7 @@ public class OCFQueryVerifier extends QueryVerifier {
 
             final byte[] dataBytes = data.getBytes(Charsets.UTF_8);
 
-            final String serialString = Long.toString(serial);
+           // final String serialString = Long.toString(serial);
             final byte[] serialBytes = ByteBuffer.allocate(8).putLong(serial).array();
 
             //check the ICRL
@@ -109,13 +122,13 @@ public class OCFQueryVerifier extends QueryVerifier {
                 return false;
             }
 
-            final boolean verified = verifyData(serial, signature, data);
+           // final boolean verified = verifyData(serial, signature, data);
 
             final byte[] allData = ArrayUtils.addAll(dataBytes, serialBytes);
             RSASHA1Signer signer=new RSASHA1Signer(key.getModulus(),key.getExponent());
 
             message = message.multiply(new BigInteger(signer.computehash(allData))).mod(key.getModulus());
-            sig = sig.multiply(new BigInteger(signature)).mod(key.getModulus());
+          //  sig = sig.multiply(new BigInteger(signature)).mod(key.getModulus());
 
         }
 
@@ -124,6 +137,31 @@ public class OCFQueryVerifier extends QueryVerifier {
         
 
         return true;
+    }
+
+    //// TODO: 1/10/17 changes
+
+    /**
+     * generates the final aggregate signature by homomorphic multiplication of each of column_ic
+     * @param record
+     * @param icdbQuery
+     * @return
+     */
+    @Override
+    protected boolean aggregateSignatureGenerator(Record record, ICDBQuery icdbQuery) {
+
+        final StringBuilder builder = new StringBuilder();
+
+        int index = 0;
+        for (Field<?> attr : record.fields()) {
+
+            final byte[] signature = (byte[]) record.get(index);
+            sig = sig.multiply(new BigInteger(signature)).mod(key.getModulus());
+
+            index++;
+        }
+        return true;
+
     }
 
 
