@@ -7,6 +7,7 @@ import org.apache.logging.log4j.Logger;
 import org.jooq.*;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
+import org.jooq.util.derby.sys.Sys;
 
 import javax.naming.Reference;
 import java.sql.Connection;
@@ -27,6 +28,7 @@ public class DBConnection {
 //    private static final MysqlDataSource dataSource = new MysqlDataSource();
     private static final Logger logger = LogManager.getLogger();
     private static UserConfig userConfig;
+
 
     /**
      * Configure a connection to a MySQL server
@@ -69,6 +71,7 @@ public class DBConnection {
                 "user=" + userConfig.user + "&password=" + userConfig.password +
                 "&maxAllowedPacket=1000000000&autoReconnect=true&useSSL=false" +
                 "&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=America/Denver";
+
 
 //        connection = dataSource.getConnection();
         connection = DriverManager.getConnection(url);
@@ -119,6 +122,7 @@ public class DBConnection {
     }
 
     public List<String> getPrimaryKeys(String table) {
+
         return primaryKeyMap.get(table);
     }
 
