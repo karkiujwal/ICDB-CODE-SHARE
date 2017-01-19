@@ -32,12 +32,15 @@ public class CommandLineArgs {
     public final ExecuteQueryCommand executeQueryCommand;
     public final BenchmarkCommand benchmarkCommand;
 
+
+
     @Parameter(names = {"-c", "--config"}, converter = ReaderConverter.class, description = "The path of the JSON configuration file")
-    public Reader readerConfig = new FileReader("./config.json");
+    public Reader readerConfig = new FileReader("../ICDB/config.json");
 
     private ConfigArgs config;
 
     public CommandLineArgs(String[] args) throws FileNotFoundException {
+
         jCommander = new JCommander(this);
 
         convertDBCommand = new ConvertDBCommand();

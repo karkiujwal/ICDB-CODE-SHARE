@@ -25,11 +25,8 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.text.DecimalFormat;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -104,20 +101,30 @@ public abstract class QueryVerifier {
             //get the records (integrity codes) to generate final aggregate signature
             Stream<Record> AggregateRecords = DBSource.stream(icdb, icdbQuery.getAggregateQuery(), fetch);
             //check for aggregate signature generated
+
+            Stopwatch aggregateSigGenerationTime = Stopwatch.createStarted();
            if( isAggregateSignatureGenerated(AggregateRecords,icdbQuery)){
+               statistics.setAggregateSigGenerationTime(aggregateSigGenerationTime.elapsed(ICDBTool.TIME_UNIT));
+               logger.debug("Aggregate Signature generation time: {}", statistics.getAggregateSigGenerationTime());
+
+               //track the time for RSA_AGGREGATE final verification
+               Stopwatch aggregateFinalVerificationTime = Stopwatch.createStarted();
                RSASHA1Signer signer=new RSASHA1Signer(key.getModulus(),key.getExponent());
                BigInteger newsig= new BigInteger(signer.computeRSA(message.toByteArray()));
                if(Arrays.equals(newsig.toByteArray(),sig.toByteArray())){
                    logger.info("ICDB aggregate sign verified");
                    verified= true;
                }else verified=false;
+               //Note: the millisec vale for final aggregate verification gave a 'long' value of 0, to keep the exact record, micro sec is used
+               statistics.setRSA_AGG_final_verificationTime(aggregateFinalVerificationTime.elapsed(TimeUnit.MICROSECONDS));
+               logger.debug("RSA Aggregate Final Verification time(microsec): {}", statistics.getRSA_AGG_final_verificationTime());
 
            }
 
 
         }
-
-        logger.debug("Data verification time: {}", statistics.getVerificationTime());
+        //time to verify the query reseults, time to
+        logger.debug("Data verification time/final message generation time(for RSA_AGGREGATE): {}", statistics.getVerificationTime());
         logger.debug("Total query verification time: {}", totalQueryVerificationTime.elapsed(ICDBTool.TIME_UNIT));
         return verified;
     }
