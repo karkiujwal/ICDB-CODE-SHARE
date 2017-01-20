@@ -114,6 +114,7 @@ public class FileConverter {
 				}
 				field=field.concat(table[0]);
 
+
                 final byte[] dataBytes = field.getBytes(Charsets.UTF_8);
                 convertLine(collector, dataBytes, codeGen, icrl);
             }

@@ -5,7 +5,7 @@
   "password": "",
   "schema": "employees",
   "icdbSchema": "employees_icdb",
-  "algorithm": "RSA_AGGREGATE",
+  "algorithm": "RSA",
   "granularity": "FIELD",
   "macKey": "qyPTqFrPGUpxcIo9sz2MdQ==",
   "rsaKeyFile": "key.pem",
