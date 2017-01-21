@@ -101,7 +101,7 @@ public class OCFQueryVerifier extends QueryVerifier {
             for (String table:icdbQuery.queryTableName) {
 
                 List<String>primaryKeysList=icdb.getPrimaryKeys(table);
-                Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
+               // Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
                 for (String primarykey:primaryKeysList) {
                     data=data.concat(record.get(primarykey).toString());
                 }

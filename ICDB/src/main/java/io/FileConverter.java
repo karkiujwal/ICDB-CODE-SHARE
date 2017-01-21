@@ -22,6 +22,7 @@ import crypto.CodeGen;
 import crypto.Convert;
 import main.args.option.Granularity;
 import io.source.FileSource;
+import org.jooq.util.derby.sys.Sys;
 import verify.serial.AbstractIcrl;
 import verify.serial.Icrl;
 
@@ -37,7 +38,6 @@ public class FileConverter {
 	private final CodeGen codeGen;
 	private final Granularity granularity;
 	private final DBConnection db;
-	private List <Integer> primarykeyIndexes= new ArrayList<>();
 
     private final AbstractIcrl icrl = Icrl.Companion.init();
 
@@ -91,25 +91,27 @@ public class FileConverter {
 	}
 
 	private Stream<List<String>> convertLineOCF(Stream<List<String>> csvInput, String tablename) throws IOException {
-
-		primarykeyIndexes.clear();
+		List <Integer> primarykeyindexes= new ArrayList<>();
      List<String> collector = new ArrayList<>();
 		String[] table =tablename.split("\\.");
+
+
 
 	    return csvInput.map(line -> {
 
 	    	//get the primarykey index from the csv header i.e, first line
-			if(primarykeyIndexes.size()<=0){
+			if(primarykeyindexes.size()<=0){
 				List<String>primaryKeysList=db.getPrimaryKeys(table[0]);
 				Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
-				getprimaryKeyIndex(line,primaryKeysList);
-				;
+				primarykeyindexes.addAll(getprimaryKeyIndex(line,primaryKeysList));
+
 			}
 			collector.clear();
             collector.addAll(line);
             for (String field : line) {
+
             	//need to concat with primary key and table name
-				for (Integer index:primarykeyIndexes) {
+				for (Integer index:primarykeyindexes) {
 					field=field.concat(line.get(index));
 				}
 				field=field.concat(table[0]);
@@ -152,7 +154,7 @@ public class FileConverter {
 	 * @param primarykeys
 	 * @return
 	 */
-	private void getprimaryKeyIndex(List<String> headerlist,List<String> primarykeys){
+	private List <Integer> getprimaryKeyIndex(List<String> headerlist,List<String> primarykeys ){
 		List<Integer> primaryKeyIndex=new ArrayList<>();
 		int index=0;
 		for (String field:headerlist) {
@@ -164,7 +166,7 @@ public class FileConverter {
 			}
 		index++;
 		}
-		primarykeyIndexes= primaryKeyIndex;
+		return  primaryKeyIndex;
 
 	}
 
