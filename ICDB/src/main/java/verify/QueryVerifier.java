@@ -170,9 +170,10 @@ public abstract class QueryVerifier {
         //track the time for AggregateFinalVerification
         Stopwatch aggregateFinalVerificationTime = Stopwatch.createStarted();
         if(isAggregateSigGenerated && codeGen.getAlgorithm()== AlgorithmType.RSA_AGGREGATE ){
-            if(Arrays.equals(finalClientSig.toByteArray(),sig.toByteArray()))
+            if(Arrays.equals(finalClientSig.toByteArray(),sig.toByteArray())) {
                 logger.info("ICDB aggregate sign verified");
-                verified= true;
+                verified = true;
+            }
 
 
         }else if(isAggregateSigGenerated){
