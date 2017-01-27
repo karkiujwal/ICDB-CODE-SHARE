@@ -159,7 +159,7 @@ public class OCTQueryVerifier extends QueryVerifier {
                     final byte[] allData = ArrayUtils.addAll(dataBytes, serialBytes);
 
                     totalDataSize+=dataBytes.length;
-                    totalSerialSize=+serialBytes.length;
+                    totalSerialSize+=serialBytes.length;
 
                     RSASHA1Signer signer=new RSASHA1Signer(key.getModulus(),key.getExponent());
                     message = message.multiply(new BigInteger(signer.computehash(allData))).mod(key.getModulus());
