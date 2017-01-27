@@ -14,6 +14,11 @@ import main.args.config.UserConfig;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.bouncycastle.jcajce.provider.digest.SHA3.DigestSHA3;
+import org.bouncycastle.jcajce.provider.digest.SHA3.Digest256;
+import java.security.MessageDigest;
+
+import org.bouncycastle.util.encoders.Hex;
 import org.jooq.*;
 import parse.ICDBQuery;
 import stats.RunStatistics;
@@ -61,6 +66,13 @@ public abstract class QueryVerifier {
 
     protected BigInteger message = BigInteger.valueOf(1);
     protected BigInteger sig = BigInteger.valueOf(1);
+    protected StringBuilder sigBuilderCloud = new StringBuilder();
+    protected String AggSigCloud ;
+    protected StringBuilder sigBuilderClient = new StringBuilder();
+    protected String AggSigClient ;
+
+    BigInteger finalClientSig=BigInteger.ONE;
+
 
     public QueryVerifier(DBConnection icdb, UserConfig dbConfig, int threads, DataSource.Fetch fetch, RunStatistics statistics) {
         this.icdb = icdb;
@@ -89,43 +101,82 @@ public abstract class QueryVerifier {
 
         statistics.setDataFetchTime(queryFetchTime.elapsed(ICDBTool.TIME_UNIT));
         logger.debug("Data fetch time: {}", statistics.getDataFetchTime());
-        Stopwatch queryVerificationTime = Stopwatch.createStarted();
 
+        Stopwatch queryVerificationTime = Stopwatch.createStarted();
+        //final verification if not AGGREGATE VERIFICATION or aggregate message generation if RSA_AGGREGATE or final Integrity Code Generation(on client) if MAC_AGGREGATE
         boolean verified = verifyRecords(records,  icdbQuery);
         records.close();
-
+        //generate final IC for client if RSA_AGGREGATE
+        if (codeGen.getAlgorithm()== AlgorithmType.RSA_AGGREGATE ){
+            RSASHA1Signer signer=new RSASHA1Signer(key.getModulus(),key.getExponent());
+            finalClientSig= new BigInteger(signer.computeRSA(message.toByteArray()));
+        }
         statistics.setVerificationTime(queryVerificationTime.elapsed(ICDBTool.TIME_UNIT));
 
 
-        if (codeGen.getAlgorithm()== AlgorithmType.RSA_AGGREGATE && verified){
-            //get the records (integrity codes) to generate final aggregate signature
-            Stream<Record> AggregateRecords = DBSource.stream(icdb, icdbQuery.getAggregateQuery(), fetch);
-            //check for aggregate signature generated
-
-            Stopwatch aggregateSigGenerationTime = Stopwatch.createStarted();
-           if( isAggregateSignatureGenerated(AggregateRecords,icdbQuery)){
-               statistics.setAggregateSigGenerationTime(aggregateSigGenerationTime.elapsed(ICDBTool.TIME_UNIT));
-               logger.debug("Aggregate Signature generation time: {}", statistics.getAggregateSigGenerationTime());
-
-               //track the time for RSA_AGGREGATE final verification
-               Stopwatch aggregateFinalVerificationTime = Stopwatch.createStarted();
-               RSASHA1Signer signer=new RSASHA1Signer(key.getModulus(),key.getExponent());
-               BigInteger newsig= new BigInteger(signer.computeRSA(message.toByteArray()));
-               if(Arrays.equals(newsig.toByteArray(),sig.toByteArray())){
-                   logger.info("ICDB aggregate sign verified");
-                   verified= true;
-               }else verified=false;
-               //Note: the millisec vale for final aggregate verification gave a 'long' value of 0, to keep the exact record, micro sec is used
-               statistics.setRSA_AGG_final_verificationTime(aggregateFinalVerificationTime.elapsed(TimeUnit.MICROSECONDS));
-               logger.debug("RSA Aggregate Final Verification time(microsec): {}", statistics.getRSA_AGG_final_verificationTime());
-
-           }
-
-
+        if (codeGen.getAlgorithm()== AlgorithmType.RSA_AGGREGATE  || codeGen.getAlgorithm()==AlgorithmType.AES_AGGREGATE || codeGen.getAlgorithm()==AlgorithmType.SHA_AGGREGATE  ){
+            verified=verifyAggregate(icdbQuery);
         }
-        //time to verify the query reseults, time to
-        logger.debug("Data verification time/final message generation time(for RSA_AGGREGATE): {}", statistics.getVerificationTime());
+
+        //time to verify the query results, time to
+        logger.debug("Data verification time/final message generation time(for ALGO_AGGREGATE): {}", statistics.getVerificationTime());
+
+        logger.debug("Aggregate Query Fetch Time: {}", statistics.getAggregateRecordFetchTime());
+        logger.debug("Aggregate Signature generation time: {}", statistics.getAggregateSigGenerationTime());
+        logger.debug("Aggregate Final Verification time(microsec): {}", statistics.getAGG_final_verificationTime());
+        //time to verify the query results, time to
+        logger.debug("Data verification time/final message generation time(for ALGO_AGGREGATE): {}", statistics.getVerificationTime());
         logger.debug("Total query verification time: {}", totalQueryVerificationTime.elapsed(ICDBTool.TIME_UNIT));
+        return verified;
+    }
+
+
+    public boolean verifyAggregate(ICDBQuery icdbQuery){
+        boolean verified=false;
+        //get the records (integrity codes) to generate final aggregate signature
+        Stopwatch aggregateRecordFetchTime = Stopwatch.createStarted();
+        Stream<Record> AggregateRecords = DBSource.stream(icdb, icdbQuery.getAggregateQuery(), fetch);
+        statistics.setAggregateRecordFetchTime(aggregateRecordFetchTime.elapsed(ICDBTool.TIME_UNIT));
+
+        //check for aggregate signature generated
+        Stopwatch aggregateSigGenerationTime = Stopwatch.createStarted();
+        boolean isAggregateSigGenerated=isAggregateSignatureGenerated(AggregateRecords,icdbQuery);
+        //do final Hashing on the combined signatures for AES and SHA
+        if (codeGen.getAlgorithm()== AlgorithmType.AES_AGGREGATE || codeGen.getAlgorithm()== AlgorithmType.SHA_AGGREGATE){
+            DigestSHA3 md = new DigestSHA3(256); //same as DigestSHA3 md = new SHA3.Digest256();
+            md.update(sigBuilderCloud.toString().getBytes(Charsets.UTF_8));
+           sigBuilderCloud.setLength(0);
+            AggSigCloud= Hex.toHexString(md.digest());
+        }
+        statistics.setAggregateSigGenerationTime(aggregateSigGenerationTime.elapsed(ICDBTool.TIME_UNIT));
+
+
+        //track the time for AggregateFinalVerification
+        Stopwatch aggregateFinalVerificationTime = Stopwatch.createStarted();
+        if(isAggregateSigGenerated && codeGen.getAlgorithm()== AlgorithmType.RSA_AGGREGATE ){
+            if(Arrays.equals(finalClientSig.toByteArray(),sig.toByteArray()))
+                logger.info("ICDB aggregate sign verified");
+                verified= true;
+
+
+        }else if(isAggregateSigGenerated){
+            //track the time for MAC_AGGREGATE final verification
+            //do final  hashing on the combination of signatures regenerated by the client
+            DigestSHA3 md1 = new DigestSHA3(256); //same as DigestSHA3 md = new SHA3.Digest256();
+            md1.update(sigBuilderClient.toString().getBytes(Charsets.UTF_8));
+            sigBuilderClient.setLength(0);
+            AggSigClient= Hex.toHexString(md1.digest());
+
+            if (AggSigCloud.equals(AggSigClient))
+                 verified=true;
+
+
+        }else{
+            logger.error("Aggregate Signature not generated");
+        }
+        //Note: the millisec value for final aggregate verification gave a 'long' value of 0, to keep the exact record, micro sec is used
+        statistics.setAGG_final_verificationTime(aggregateFinalVerificationTime.elapsed(TimeUnit.MICROSECONDS));
+
         return verified;
     }
 
@@ -175,7 +226,7 @@ public abstract class QueryVerifier {
         logger.debug("Using {} thread(s)", threadPool.getParallelism());
         verifyCount = 0;
         List<CompletableFuture<Boolean>> futures;
-        if (codeGen.getAlgorithm()== AlgorithmType.RSA_AGGREGATE){
+        if (codeGen.getAlgorithm()== AlgorithmType.RSA_AGGREGATE || codeGen.getAlgorithm()== AlgorithmType.AES_AGGREGATE || codeGen.getAlgorithm()== AlgorithmType.SHA_AGGREGATE){
             futures = records.map(record -> CompletableFuture.supplyAsync(() -> aggregateVerifyRecord(record, icdbQuery), threadPool))
                     .collect(Collectors.toList());
         }else {
@@ -204,8 +255,17 @@ public abstract class QueryVerifier {
 
         logger.debug("Using {} thread(s)", threadPool.getParallelism());
         verifyCount = 0;
-        List<CompletableFuture<Boolean>> futures=records.map(record -> CompletableFuture.supplyAsync(() -> aggregateSignatureGenerator(record, icdbQuery), threadPool))
-                .collect(Collectors.toList());
+        List<CompletableFuture<Boolean>> futures;
+        if (codeGen.getAlgorithm()== AlgorithmType.RSA_AGGREGATE ){
+            futures=records.map(record -> CompletableFuture.supplyAsync(() -> aggregateRSASignatureGenerator(record, icdbQuery), threadPool))
+                    .collect(Collectors.toList());
+        }else{
+            //if HMAC or CMAC
+            futures=records.map(record -> CompletableFuture.supplyAsync(() -> aggregateMACSignatureGenerator(record, icdbQuery), threadPool))
+                    .collect(Collectors.toList());
+
+        }
+
 
         // Asynchronously verify all signatures
         return futures.stream()
@@ -224,9 +284,7 @@ public abstract class QueryVerifier {
     //verification by using RSA homomorphic multiplication
     protected abstract boolean aggregateVerifyRecord(Record record, ICDBQuery icdbQuery) ;
 
-    //gnerates final aggregate signature by homomorphic multiplication, for RSA_AGGREGATE
-    //ASG=aggregate signature generator
-    protected abstract boolean aggregateSignatureGenerator(Record ASGrecord, ICDBQuery icdbQuery) ;
+
 
     /**
      * Verifies data and serial number by regenerating the signature
@@ -245,6 +303,67 @@ public abstract class QueryVerifier {
         final boolean signatureVerified = codeGen.verify(allBytes, signature);
         return serialVerified && signatureVerified;
     }
+
+    /**
+     * regenerate serial on the client machine to combine and compute final aggregate IC
+     * @param serial
+     * @param data
+     * @return
+     */
+    protected byte[] regenerateSignature(final long serial,  final String data) {
+        final byte[] serialBytes = ByteBuffer.allocate(8).putLong(serial).array();
+        final byte[] dataBytes = data.getBytes(Charsets.UTF_8);
+
+        final byte[] allBytes = ArrayUtils.addAll(dataBytes, serialBytes);
+
+            return codeGen.generateSignature(allBytes);
+
+    }
+
+
+    /**
+     * generates the final aggregate signature by homomorphic multiplication of each of column_ic
+     * @param record
+     * @param icdbQuery
+     * @return
+     */
+    protected boolean aggregateRSASignatureGenerator(Record record, ICDBQuery icdbQuery) {
+
+        final StringBuilder builder = new StringBuilder();
+
+        int index = 0;
+        for (Field<?> attr : record.fields()) {
+
+            final byte[] signature = (byte[]) record.get(index);
+            sig = sig.multiply(new BigInteger(signature)).mod(key.getModulus());
+
+            index++;
+        }
+        return true;
+    }
+
+    /**
+     * generates the final aggregate signature by combining all the column_ic and hashing
+     * @param record
+     * @param icdbQuery
+     * @return
+     */
+    protected boolean aggregateMACSignatureGenerator(Record record, ICDBQuery icdbQuery) {
+
+        int index = 0;
+        for (Field<?> attr : record.fields()) {
+
+             byte[] signature = (byte[]) record.get(index);
+            sigBuilderCloud.append(Hex.toHexString(signature));
+          //  sig = sig.multiply(new BigInteger(signature)).mod(key.getModulus());
+            index++;
+        }
+        return true;
+
+    }
+
+
+
 
     /**
      * @return An error message, if it exists

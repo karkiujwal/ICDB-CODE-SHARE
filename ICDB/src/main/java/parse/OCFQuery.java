@@ -111,19 +111,23 @@ public class OCFQuery extends ICDBQuery {
 
 
         //if RSA_Aggregate, exclude the IC column (ic is handled by aggregate signature generator)
-        if (codeGen.getAlgorithm()== AlgorithmType.RSA_AGGREGATE && !skipFilter){
-            List<SelectItem> fileteredSelectItems=new ArrayList<>();
-            final int dataSize = selectItems.size() / 3;
-            for (int i = 0; i < dataSize; i++) {
-                //add columns
-                fileteredSelectItems.add(selectItems.get(i));
-            }
-            for (int i = 0; i < dataSize; i++) {
-                //add serials
-                fileteredSelectItems.add(selectItems.get(dataSize + 2 * i + 1));
-            }
-            selectItems.clear();
-            selectItems.addAll(fileteredSelectItems);
+        if (codeGen.getAlgorithm()== AlgorithmType.RSA_AGGREGATE || codeGen.getAlgorithm()== AlgorithmType.AES_AGGREGATE || codeGen.getAlgorithm()== AlgorithmType.SHA_AGGREGATE ){
+           if(!skipFilter){
+               List<SelectItem> fileteredSelectItems=new ArrayList<>();
+               final int dataSize = selectItems.size() / 3;
+               for (int i = 0; i < dataSize; i++) {
+                   //add columns
+                   fileteredSelectItems.add(selectItems.get(i));
+               }
+               for (int i = 0; i < dataSize; i++) {
+                   //add serials
+                   fileteredSelectItems.add(selectItems.get(dataSize + 2 * i + 1));
+               }
+               selectItems.clear();
+               selectItems.addAll(fileteredSelectItems);
+
+           }
+
         }
 
         return select;

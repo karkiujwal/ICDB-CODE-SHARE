@@ -15,8 +15,9 @@ data class RunStatistics(
     var verificationTime: Long = 0,
     var executionTime: Long = 0,
     var aggregateOperationTime: Long = 0,
+    var aggregateRecordFetchTime: Long = 0,
     var aggregateSigGenerationTime: Long = 0,
-    var RSA_AGG_final_verificationTime: Long = 0
+    var AGG_final_verificationTime: Long = 0
 ) {
     fun list(): List<Long> = listOf(
         run,
@@ -26,7 +27,8 @@ data class RunStatistics(
         verificationTime,
         executionTime,
         aggregateOperationTime,
+            aggregateRecordFetchTime,
             aggregateSigGenerationTime,
-            RSA_AGG_final_verificationTime
+            AGG_final_verificationTime
     )
 }

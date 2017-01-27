@@ -35,7 +35,7 @@ public class CommandLineArgs {
 
 
     @Parameter(names = {"-c", "--config"}, converter = ReaderConverter.class, description = "The path of the JSON configuration file")
-    public Reader readerConfig = new FileReader("../ICDB/config.json");
+    public Reader readerConfig = new FileReader("config.json");
 
     private ConfigArgs config;
 

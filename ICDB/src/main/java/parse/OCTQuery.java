@@ -88,7 +88,7 @@ public class OCTQuery extends ICDBQuery {
 
 
         //if RSA_Aggregate, exclude the IC column (ic is handled by aggregate signature generator)
-        if (codeGen.getAlgorithm()== AlgorithmType.RSA_AGGREGATE){
+        if (codeGen.getAlgorithm()== AlgorithmType.RSA_AGGREGATE || codeGen.getAlgorithm()== AlgorithmType.AES_AGGREGATE || codeGen.getAlgorithm()== AlgorithmType.SHA_AGGREGATE){
             List<String> fieldList=icdb.getFields(tables.get(0));
             for (String field:fieldList) {
                 if (!field.equalsIgnoreCase("ic"))

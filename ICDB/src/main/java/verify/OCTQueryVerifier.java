@@ -3,6 +3,7 @@ package verify;
 import com.google.common.base.Charsets;
 import com.google.common.base.Stopwatch;
 import com.google.common.math.BigIntegerMath;
+import crypto.AlgorithmType;
 import crypto.signer.RSASHA1Signer;
 import io.DBConnection;
 import io.Format;
@@ -10,6 +11,7 @@ import io.source.DataSource;
 import main.ICDBTool;
 import main.args.config.UserConfig;
 import org.apache.commons.lang3.ArrayUtils;
+import org.bouncycastle.util.encoders.Hex;
 import org.jooq.Field;
 import org.jooq.Record;
 import stats.RunStatistics;
@@ -116,6 +118,10 @@ public class OCTQueryVerifier extends QueryVerifier {
     }
 
     @Override
+    /**
+     * for RSA_AGGREGATE , get aggregate message by modular multiplication of messages
+     * for SHA_AGGREGATE
+     */
     protected boolean aggregateVerifyRecord(Record record, ICDBQuery icdbQuery) {
 
         final StringBuilder builder = new StringBuilder();
@@ -126,33 +132,38 @@ public class OCTQueryVerifier extends QueryVerifier {
             if (!attr.getName().equals("serial")) {
                 final Object value = record.get(index);
                 builder.append(value);
-
                 index++;
-
 
             } else {
 
 
                // final byte[] signature = (byte[]) record.get(index);
                 final long serial = (long) record.get(index );
-                final byte[] serialBytes = ByteBuffer.allocate(8).putLong(serial).array();
+
 
                  String data = builder.toString();
                 //concat table name to the end
                 for (String table:icdbQuery.queryTableName) {
                     data=data.concat(table.toLowerCase());
                 }
-                final byte[] dataBytes = data.getBytes(Charsets.UTF_8);
 
                 //check the ICRL
                 if (!icrl.contains(serial)) {
                     return false;
                 }
 
-                final byte[] allData = ArrayUtils.addAll(dataBytes, serialBytes);
+                //generate aggregate message for RSA and regenerate signature for AES and SHA
+                if (codeGen.getAlgorithm()== AlgorithmType.RSA_AGGREGATE){
+                    final byte[] serialBytes = ByteBuffer.allocate(8).putLong(serial).array();
+                    final byte[] dataBytes = data.getBytes(Charsets.UTF_8);
+                    final byte[] allData = ArrayUtils.addAll(dataBytes, serialBytes);
 
-                RSASHA1Signer signer=new RSASHA1Signer(key.getModulus(),key.getExponent());
-                message = message.multiply(new BigInteger(signer.computehash(allData))).mod(key.getModulus());
+                    RSASHA1Signer signer=new RSASHA1Signer(key.getModulus(),key.getExponent());
+                    message = message.multiply(new BigInteger(signer.computehash(allData))).mod(key.getModulus());
+                }else{
+                    sigBuilderClient.append(Hex.toHexString(regenerateSignature(serial,data)));
+                }
+
                // sig = sig.multiply(new BigInteger(signature)).mod(key.getModulus());
 
                 //for join queries
@@ -166,26 +177,10 @@ public class OCTQueryVerifier extends QueryVerifier {
 
         }
 
-
         return  true;
     }
 
-    @Override
-    protected boolean aggregateSignatureGenerator(Record record, ICDBQuery icdbQuery) {
 
-        final StringBuilder builder = new StringBuilder();
-
-        int index = 0;
-        for (Field<?> attr : record.fields()) {
-
-            final byte[] signature = (byte[]) record.get(index);
-            sig = sig.multiply(new BigInteger(signature)).mod(key.getModulus());
-
-            index++;
-        }
-        return true;
-
-    }
 
 
 

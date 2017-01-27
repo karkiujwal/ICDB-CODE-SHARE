@@ -12,7 +12,7 @@ import main.args.config.UserConfig
  * corresponding algorithm implementation.
  *
  * Created on 5/21/2016
- * @author Dan Kondratyuk
+ *
  */
 enum class AlgorithmType {
     RSA {
@@ -55,6 +55,19 @@ enum class AlgorithmType {
         override fun verifyelgamal(data: ByteArray,ecparam: ECParams, signature: ByteArray) =
                 ECSigner(ecparam).verify(signature,data)
     },
+    AES_AGGREGATE {
+        override fun generateSignature(data: ByteArray, key: Key) =
+                MacSigner.generate(data, key, MacSigner.cmacAes)
+
+        override fun generateSignatureelgamal(data: ByteArray, ecparam: ECParams): ByteArray =
+                ECSigner(ecparam).computeECCode(data)
+
+        override fun verify(data: ByteArray, key: Key, signature: ByteArray) =
+                MacSigner.verify(data, key, signature, MacSigner.cmacAes)
+
+        override fun verifyelgamal(data: ByteArray,ecparam: ECParams, signature: ByteArray) =
+                ECSigner(ecparam).verify(signature,data)
+    },
     SHA {
         override fun generateSignature(data: ByteArray, key: Key) =
             MacSigner.generate(data, key, MacSigner.hmacSha)
@@ -67,7 +80,21 @@ enum class AlgorithmType {
 
         override fun verifyelgamal(data: ByteArray,ecparam: ECParams, signature: ByteArray) =
                 ECSigner(ecparam).verify(signature,data)
-    },ECElgamal {
+    },
+    SHA_AGGREGATE {
+        override fun generateSignature(data: ByteArray, key: Key) =
+                MacSigner.generate(data, key, MacSigner.hmacSha)
+
+        override fun generateSignatureelgamal(data: ByteArray, ecparam: ECParams): ByteArray =
+                ECSigner(ecparam).computeECCode(data)
+
+        override fun verify(data: ByteArray, key: Key, signature: ByteArray) =
+                MacSigner.verify(data, key, signature, MacSigner.hmacSha)
+
+        override fun verifyelgamal(data: ByteArray,ecparam: ECParams, signature: ByteArray) =
+                ECSigner(ecparam).verify(signature,data)
+    },
+    ECElgamal {
         override fun generateSignature(data: ByteArray, key: Key) =
                 RSASHA1Signer(key.modulus,key.exponent).computeSHA1RSA(data)
 

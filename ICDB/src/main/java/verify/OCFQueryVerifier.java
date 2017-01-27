@@ -2,6 +2,7 @@ package verify;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Stopwatch;
+import crypto.AlgorithmType;
 import crypto.signer.RSASHA1Signer;
 import io.DBConnection;
 import io.source.DataSource;
@@ -10,6 +11,7 @@ import main.args.config.UserConfig;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.bouncycastle.util.encoders.Hex;
 import org.jooq.Field;
 import org.jooq.Record;
 import parse.ICDBQuery;
@@ -112,22 +114,33 @@ public class OCFQueryVerifier extends QueryVerifier {
                 data=data.concat(table.toLowerCase());
             }
 
-            final byte[] dataBytes = data.getBytes(Charsets.UTF_8);
 
-           // final String serialString = Long.toString(serial);
-            final byte[] serialBytes = ByteBuffer.allocate(8).putLong(serial).array();
 
             //check the ICRL
             if (!icrl.contains(serial)) {
                 return false;
             }
 
+
+            //generate aggregate message for RSA and regenerate signature for AES and SHA
+            if (codeGen.getAlgorithm()== AlgorithmType.RSA_AGGREGATE){
+                final byte[] dataBytes = data.getBytes(Charsets.UTF_8);
+
+                // final String serialString = Long.toString(serial);
+                final byte[] serialBytes = ByteBuffer.allocate(8).putLong(serial).array();
+
+                final byte[] allData = ArrayUtils.addAll(dataBytes, serialBytes);
+                RSASHA1Signer signer=new RSASHA1Signer(key.getModulus(),key.getExponent());
+
+                message = message.multiply(new BigInteger(signer.computehash(allData))).mod(key.getModulus());
+
+            }else{
+                sigBuilderClient.append(Hex.toHexString(regenerateSignature(serial,data)));
+            }
+
            // final boolean verified = verifyData(serial, signature, data);
 
-            final byte[] allData = ArrayUtils.addAll(dataBytes, serialBytes);
-            RSASHA1Signer signer=new RSASHA1Signer(key.getModulus(),key.getExponent());
 
-            message = message.multiply(new BigInteger(signer.computehash(allData))).mod(key.getModulus());
           //  sig = sig.multiply(new BigInteger(signature)).mod(key.getModulus());
 
         }
@@ -139,30 +152,8 @@ public class OCFQueryVerifier extends QueryVerifier {
         return true;
     }
 
-    //// TODO: 1/10/17 changes
 
-    /**
-     * generates the final aggregate signature by homomorphic multiplication of each of column_ic
-     * @param record
-     * @param icdbQuery
-     * @return
-     */
-    @Override
-    protected boolean aggregateSignatureGenerator(Record record, ICDBQuery icdbQuery) {
 
-        final StringBuilder builder = new StringBuilder();
-
-        int index = 0;
-        for (Field<?> attr : record.fields()) {
-
-            final byte[] signature = (byte[]) record.get(index);
-            sig = sig.multiply(new BigInteger(signature)).mod(key.getModulus());
-
-            index++;
-        }
-        return true;
-
-    }
 
 
 
