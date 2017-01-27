@@ -129,6 +129,9 @@ public class OCFQueryVerifier extends QueryVerifier {
                 // final String serialString = Long.toString(serial);
                 final byte[] serialBytes = ByteBuffer.allocate(8).putLong(serial).array();
 
+                totalDataSize+=dataBytes.length;
+                totalSerialSize=+serialBytes.length;
+
                 final byte[] allData = ArrayUtils.addAll(dataBytes, serialBytes);
                 RSASHA1Signer signer=new RSASHA1Signer(key.getModulus(),key.getExponent());
 

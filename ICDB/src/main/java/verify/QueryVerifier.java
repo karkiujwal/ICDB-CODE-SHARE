@@ -16,6 +16,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bouncycastle.jcajce.provider.digest.SHA3.DigestSHA3;
 import org.bouncycastle.jcajce.provider.digest.SHA3.Digest256;
+
+import java.io.File;
 import java.security.MessageDigest;
 
 import org.bouncycastle.util.encoders.Hex;
@@ -64,6 +66,10 @@ public abstract class QueryVerifier {
 
     private static final Logger logger = LogManager.getLogger();
 
+    protected Integer totalICSize=0;
+    protected Integer totalDataSize=0;
+    protected Integer totalSerialSize=0;
+
     protected BigInteger message = BigInteger.valueOf(1);
     protected BigInteger sig = BigInteger.valueOf(1);
     protected StringBuilder sigBuilderCloud = new StringBuilder();
@@ -99,6 +105,7 @@ public abstract class QueryVerifier {
         Stopwatch queryFetchTime = Stopwatch.createStarted();
         Stream<Record> records = DBSource.stream(icdb, icdbQuery.getVerifyQuery(), fetch);
 
+
         statistics.setDataFetchTime(queryFetchTime.elapsed(ICDBTool.TIME_UNIT));
         logger.debug("Data fetch time: {}", statistics.getDataFetchTime());
 
@@ -112,6 +119,13 @@ public abstract class QueryVerifier {
             finalClientSig= new BigInteger(signer.computeRSA(message.toByteArray()));
         }
         statistics.setVerificationTime(queryVerificationTime.elapsed(ICDBTool.TIME_UNIT));
+
+
+            //set total data and serial size (excluding IC)
+            statistics.setTotalDataSize(totalDataSize);
+            statistics.setTotalSerialSize(totalSerialSize);
+
+
 
 
         if (codeGen.getAlgorithm()== AlgorithmType.RSA_AGGREGATE  || codeGen.getAlgorithm()==AlgorithmType.AES_AGGREGATE || codeGen.getAlgorithm()==AlgorithmType.SHA_AGGREGATE  ){
@@ -151,6 +165,8 @@ public abstract class QueryVerifier {
         statistics.setAggregateSigGenerationTime(aggregateSigGenerationTime.elapsed(ICDBTool.TIME_UNIT));
 
 
+
+
         //track the time for AggregateFinalVerification
         Stopwatch aggregateFinalVerificationTime = Stopwatch.createStarted();
         if(isAggregateSigGenerated && codeGen.getAlgorithm()== AlgorithmType.RSA_AGGREGATE ){
@@ -174,6 +190,8 @@ public abstract class QueryVerifier {
         }else{
             logger.error("Aggregate Signature not generated");
         }
+        //set total IC size
+        statistics.setTotalICSize(totalICSize);
         //Note: the millisec value for final aggregate verification gave a 'long' value of 0, to keep the exact record, micro sec is used
         statistics.setAGG_final_verificationTime(aggregateFinalVerificationTime.elapsed(TimeUnit.MICROSECONDS));
 
@@ -315,6 +333,8 @@ public abstract class QueryVerifier {
         final byte[] dataBytes = data.getBytes(Charsets.UTF_8);
 
         final byte[] allBytes = ArrayUtils.addAll(dataBytes, serialBytes);
+        totalDataSize+=dataBytes.length;
+        totalSerialSize=+serialBytes.length;
 
             return codeGen.generateSignature(allBytes);
 
@@ -335,6 +355,7 @@ public abstract class QueryVerifier {
         for (Field<?> attr : record.fields()) {
 
             final byte[] signature = (byte[]) record.get(index);
+            totalICSize+=signature.length;
             sig = sig.multiply(new BigInteger(signature)).mod(key.getModulus());
 
             index++;
@@ -354,6 +375,7 @@ public abstract class QueryVerifier {
         for (Field<?> attr : record.fields()) {
 
              byte[] signature = (byte[]) record.get(index);
+            totalICSize+=signature.length;
             sigBuilderCloud.append(Hex.toHexString(signature));
           //  sig = sig.multiply(new BigInteger(signature)).mod(key.getModulus());
             index++;
@@ -361,7 +383,6 @@ public abstract class QueryVerifier {
         return true;
 
     }
-
 
 
 

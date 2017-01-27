@@ -92,7 +92,10 @@ public class ICDBTool {
 			convertQuery(cmd, dbConfig);
 		} else if (cmd.isCommand(CommandLineArgs.EXECUTE_QUERY)) {
 			executeQuery(cmd, dbConfig);
-		} else if (cmd.isCommand(CommandLineArgs.BENCHMARK)) {
+		} else if (cmd.isCommand(CommandLineArgs.EXECUTE_QUERY_SINGLE_BENCHMARK)) {
+            executeQuerybenchmark(cmd, dbConfig);
+        }
+		else if (cmd.isCommand(CommandLineArgs.BENCHMARK)) {
             benchmark(cmd, dbConfig);
 		} else { // TODO: add revoke serial command
 			cmd.jCommander.usage();
@@ -162,6 +165,35 @@ public class ICDBTool {
         executeQueryRun(
             executeQueryCommand.query, executeQueryCommand.fetch, executeQueryCommand.threads, dbConfig, run, true
         );
+
+        statistics.outputRuns();
+    }
+
+
+    /**
+     * Executes a query for 5 runs
+     */
+    private static void executeQuerybenchmark(CommandLineArgs cmd, UserConfig dbConfig) {
+        final MultirunBenchmarkCommand executemultirunQueryCommand = cmd.multirunbenchmarkCommand;
+
+        StatisticsMetadata metadata = new StatisticsMetadata(
+                dbConfig.codeGen.getAlgorithm(), dbConfig.granularity, dbConfig.icdbSchema,
+                executemultirunQueryCommand.fetch, executemultirunQueryCommand.threads, executemultirunQueryCommand.query
+        );
+        Statistics statistics = new Statistics(metadata, new File("./src/main/resources/statistics/data.csv"));
+
+
+        for(int i=0; i<5; i++){
+            RunStatistics run = new RunStatistics();
+            run.setRun(i+1);
+            statistics.addRun(run);
+
+            executeQueryRun(
+                    executemultirunQueryCommand.query, executemultirunQueryCommand.fetch, executemultirunQueryCommand.threads, dbConfig, run, true
+            );
+        }
+
+
 
         statistics.outputRuns();
     }

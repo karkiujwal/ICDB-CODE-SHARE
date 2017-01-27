@@ -23,6 +23,7 @@ public class CommandLineArgs {
     public static final String CONVERT_DB = "convert-db";
     public static final String CONVERT_QUERY = "convert-query";
     public static final String EXECUTE_QUERY = "execute-query";
+    public static final String EXECUTE_QUERY_SINGLE_BENCHMARK = "execute-query-benchmark";
     public static final String BENCHMARK = "benchmark";
 
     public final JCommander jCommander;
@@ -30,6 +31,7 @@ public class CommandLineArgs {
     public final ConvertDBCommand convertDBCommand;
     public final ConvertQueryCommand convertQueryCommand;
     public final ExecuteQueryCommand executeQueryCommand;
+    public final MultirunBenchmarkCommand multirunbenchmarkCommand;
     public final BenchmarkCommand benchmarkCommand;
 
 
@@ -47,11 +49,13 @@ public class CommandLineArgs {
         convertQueryCommand = new ConvertQueryCommand();
         executeQueryCommand = new ExecuteQueryCommand();
         benchmarkCommand = new BenchmarkCommand();
+        multirunbenchmarkCommand= new MultirunBenchmarkCommand();
 
         jCommander.addCommand(convertDBCommand);
         jCommander.addCommand(convertQueryCommand);
         jCommander.addCommand(executeQueryCommand);
         jCommander.addCommand(benchmarkCommand);
+        jCommander.addCommand(multirunbenchmarkCommand);
 
         try {
             jCommander.parse(args);
