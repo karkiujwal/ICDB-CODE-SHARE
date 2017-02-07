@@ -44,24 +44,43 @@ public class OCFQueryVerifier extends QueryVerifier {
     @Override
     protected boolean verifyRecord(Record record, ICDBQuery icdbQuery) {
         final int dataSize = record.size() / 3;
+        List<String> tableList=icdbQuery.queryTableName;
+
         for (int i = 0; i < dataSize; i++) {
             final long serial = (long) record.get(dataSize + 2 * i + 1);
             final byte[] signature = (byte[]) record.get(dataSize + 2 * i);
              String data = record.get(i).toString();
+
             //concat the primary keys values
-            for (String table:icdbQuery.queryTableName) {
+            if (icdbQuery.isJoinQuery){
+                //get table name from the record field name
+                String table= record.field(i).toString().split("\\.")[0].replace("\"", "");
                 List<String>primaryKeysList=icdb.getPrimaryKeys(table);
-              //  Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
+                //  Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
+                for (String primarykey:primaryKeysList) {
+                    data=data.concat(record.get(primarykey).toString());
+                }
+            }else{
+                List<String>primaryKeysList=icdb.getPrimaryKeys(tableList.get(0));
+                //  Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
                 for (String primarykey:primaryKeysList) {
                     data=data.concat(record.get(primarykey).toString());
                 }
             }
 
 
+
             //concat table name to the end
-            for (String table:icdbQuery.queryTableName) {
+            if (icdbQuery.isJoinQuery){
+                //get table name from the record field name
+                String table= record.field(i).toString().split("\\.")[0].replace("\"", "");
                 data=data.concat(table.toLowerCase());
+
+            }else{
+                data=data.concat(tableList.get(0));
             }
+
+
 
             final boolean verified = verifyData(serial, signature, data);
 
@@ -94,24 +113,43 @@ public class OCFQueryVerifier extends QueryVerifier {
     protected boolean aggregateVerifyRecord(Record record, ICDBQuery icdbQuery) {
 
         final int dataSize = record.size() / 2;
+        List<String> tableList=icdbQuery.queryTableName;
+
+
         for (int i = 0; i < dataSize; i++) {
 
             final long serial = (long) record.get(dataSize + i);
           //  final byte[] signature = (byte[]) record.get(dataSize + 2 * i);
              String data = record.get(i).toString();
-            //concat the primary keys values
-            for (String table:icdbQuery.queryTableName) {
 
+
+            //concat the primary keys values
+            if (icdbQuery.isJoinQuery){
+                //get table name from the record field name
+                String table= record.field(i).toString().split("\\.")[0].replace("\"", "");
                 List<String>primaryKeysList=icdb.getPrimaryKeys(table);
-               // Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
+                //  Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
+                for (String primarykey:primaryKeysList) {
+                    data=data.concat(record.get(primarykey).toString());
+                }
+            }else{
+                List<String>primaryKeysList=icdb.getPrimaryKeys(tableList.get(0));
+                //  Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
                 for (String primarykey:primaryKeysList) {
                     data=data.concat(record.get(primarykey).toString());
                 }
             }
 
+
+
             //concat table name to the end
-            for (String table:icdbQuery.queryTableName) {
+            if (icdbQuery.isJoinQuery){
+                //get table name from the record field name
+                String table= record.field(i).toString().split("\\.")[0].replace("\"", "");
                 data=data.concat(table.toLowerCase());
+
+            }else{
+                data=data.concat(tableList.get(0));
             }
 
 
@@ -141,16 +179,13 @@ public class OCFQueryVerifier extends QueryVerifier {
                 sigBuilderClient.append(Hex.toHexString(regenerateSignature(serial,data)));
             }
 
-           // final boolean verified = verifyData(serial, signature, data);
-
-
-          //  sig = sig.multiply(new BigInteger(signature)).mod(key.getModulus());
-
+            if (icdbQuery.isAggregateQuery && i==dataSize-1) {
+                Stopwatch aggregateOperationTime = Stopwatch.createStarted();
+                computeAggregateOperation(icdbQuery, record);
+                statistics.setAggregateOperationTime( statistics.getAggregateOperationTime()+aggregateOperationTime.elapsed(ICDBTool.TIME_UNIT));
+            }
         }
 
-
-       // final boolean verified = codeGen.verify(message.toByteArray(), sig.toByteArray());
-        
 
         return true;
     }

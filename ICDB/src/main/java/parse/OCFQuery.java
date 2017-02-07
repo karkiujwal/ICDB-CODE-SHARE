@@ -63,7 +63,7 @@ public class OCFQuery extends ICDBQuery {
         // If SELECT *, the verify query is the same, and if join with *, rearrange fields of both tables combined
         //note: conditions disabled for consistency with RSA_Aggregate!!
         if (selectItems.get(0) instanceof AllColumns ) {
-            if (plainSelect.getJoins()!=null || plainSelect.getJoins()==null){
+            if ( plainSelect.getJoins()==null){
                 selectItems.clear();
 
                 for (String table:tables) {
@@ -73,6 +73,38 @@ public class OCFQuery extends ICDBQuery {
                         selectItems.add(new SelectExpressionItem(new HexValue(Fields.get(i))));
                     }
                 }
+            }else if(plainSelect.getJoins()!=null){
+                //If JOIN query
+                isJoinQuery=true;
+                selectItems.clear();
+                for (String table:tables) {
+                    List<String> Fields=icdb.getFields(table);
+                    int total=Fields.size();
+                    for (int i=0; i<total/3;i++) {
+                        selectItems.add(new SelectExpressionItem(new HexValue(table.toLowerCase()+"."+Fields.get(i))));
+                    }
+                }
+                List<SelectItem> signatureItems = getICSelectItems(selectItems, Format.IC_SUFFIX, Format.SERIAL_SUFFIX);
+                selectItems.addAll(signatureItems);
+
+                if (codeGen.getAlgorithm()== AlgorithmType.RSA_AGGREGATE || codeGen.getAlgorithm()== AlgorithmType.AES_AGGREGATE || codeGen.getAlgorithm()== AlgorithmType.SHA_AGGREGATE ) {
+                    if(!skipFilter){
+                        List<SelectItem> fileteredSelectItems=new ArrayList<>();
+                        final int dataSize = selectItems.size() / 3;
+                        for (int i = 0; i < dataSize; i++) {
+                            //add columns
+                            fileteredSelectItems.add(selectItems.get(i));
+                        }
+                        for (int i = 0; i < dataSize; i++) {
+                            //add serials
+                            fileteredSelectItems.add(selectItems.get(dataSize + 2 * i + 1));
+                        }
+                        selectItems.clear();
+                        selectItems.addAll(fileteredSelectItems);
+                    }
+
+                }
+                    return select;
             }
             else
             return select;

@@ -59,6 +59,7 @@ public abstract class ICDBQuery {
 
     public Map<String, String> columnOperation = new ConcurrentHashMap<String, String>();
     public boolean isAggregateQuery;
+    public boolean isJoinQuery;
     private boolean requiresUpdate;
 
     private static final Logger logger = LogManager.getLogger();

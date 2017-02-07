@@ -20,6 +20,7 @@ import parse.ICDBQuery;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.util.List;
 
 /**
  * Executes an OCT query and verifies data integrity.
@@ -47,6 +48,9 @@ public class OCTQueryVerifier extends QueryVerifier {
         int index = 0;
         boolean verified = false;
         boolean isSkip = false;
+        List<String> tableList=icdbQuery.queryTableName;
+
+        int tableIndex=0;
         for (Field<?> attr : record.fields()) {
 
             if (!attr.getName().equals("ic") && !attr.getName().equals("serial")) {
@@ -66,9 +70,12 @@ public class OCTQueryVerifier extends QueryVerifier {
 
                  String data = builder.toString();
                 //concat table name to the end
-                for (String table:icdbQuery.queryTableName) {
-                    data=data.concat(table.toLowerCase());
-                }
+//                for (String table:tableList) {
+//                    data=data.concat(table.toLowerCase());
+//                }
+                data=data.concat(tableList.get(tableIndex).toLowerCase());
+                tableIndex++;
+
                 verified = verifyData(serial, signature, data);
 
                 builder.setLength(0);
@@ -127,6 +134,9 @@ public class OCTQueryVerifier extends QueryVerifier {
         final StringBuilder builder = new StringBuilder();
 
         int index = 0;
+        List<String> tableList=icdbQuery.queryTableName;
+        int tableIndex=0;
+
         for (Field<?> attr : record.fields()) {
 
             if (!attr.getName().equals("serial")) {
@@ -143,9 +153,11 @@ public class OCTQueryVerifier extends QueryVerifier {
 
                  String data = builder.toString();
                 //concat table name to the end
-                for (String table:icdbQuery.queryTableName) {
-                    data=data.concat(table.toLowerCase());
-                }
+//                for (String table:icdbQuery.queryTableName) {
+//                    data=data.concat(table.toLowerCase());
+//                }
+                data=data.concat(tableList.get(tableIndex).toLowerCase());
+                tableIndex++;
 
                 //check the ICRL
                 if (!icrl.contains(serial)) {
@@ -166,7 +178,7 @@ public class OCTQueryVerifier extends QueryVerifier {
                 }else{
                     sigBuilderClient.append(Hex.toHexString(regenerateSignature(serial,data)));
                 }
-
+                builder.setLength(0);
                // sig = sig.multiply(new BigInteger(signature)).mod(key.getModulus());
 
                 //for join queries
@@ -178,6 +190,13 @@ public class OCTQueryVerifier extends QueryVerifier {
                 }
             }
 
+
+        }
+
+        if (icdbQuery.isAggregateQuery) {
+            Stopwatch aggregateOperationTime = Stopwatch.createStarted();
+            computeAggregateOperation(icdbQuery, record);
+            statistics.setAggregateOperationTime( statistics.getAggregateOperationTime()+aggregateOperationTime.elapsed(ICDBTool.TIME_UNIT));
         }
 
         return  true;

@@ -3,6 +3,7 @@ package crypto.signer
 import crypto.Key
 import org.bouncycastle.crypto.Mac
 import org.bouncycastle.crypto.digests.SHA1Digest
+import org.bouncycastle.crypto.digests.SHA256Digest
 import org.bouncycastle.crypto.digests.ShortenedDigest
 import org.bouncycastle.crypto.engines.AESFastEngine
 import org.bouncycastle.crypto.macs.CMac

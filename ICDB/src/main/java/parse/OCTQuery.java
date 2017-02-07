@@ -89,11 +89,15 @@ public class OCTQuery extends ICDBQuery {
 
         //if RSA_Aggregate, exclude the IC column (ic is handled by aggregate signature generator)
         if (codeGen.getAlgorithm()== AlgorithmType.RSA_AGGREGATE || codeGen.getAlgorithm()== AlgorithmType.AES_AGGREGATE || codeGen.getAlgorithm()== AlgorithmType.SHA_AGGREGATE){
-            List<String> fieldList=icdb.getFields(tables.get(0));
-            for (String field:fieldList) {
-                if (!field.equalsIgnoreCase("ic"))
-                selectList.add(new SelectExpressionItem(new HexValue(field)));
+
+            for (String table:tables) {
+                List<String> fieldList=icdb.getFields(table);
+                for (String field:fieldList) {
+                    if (!field.equalsIgnoreCase("ic"))
+                        selectList.add(new SelectExpressionItem(new HexValue(table+"."+field)));
+                }
             }
+
         }else {
             selectList.add(new AllColumns());
         }
@@ -117,9 +121,15 @@ public class OCTQuery extends ICDBQuery {
     protected Statement parseASVQuery(Select select) {
         PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
         List<SelectItem> selectItems = plainSelect.getSelectItems();
+        TablesNamesFinder tableNamesFinder = new TablesNamesFinder();
+        List<String> tables = tableNamesFinder.getTableList(select);
 
         List<SelectItem> selectList = new ArrayList<>();
-        selectList.add(new SelectExpressionItem(new HexValue("ic")));
+        for (String table:tables) {
+            selectList.add(new SelectExpressionItem(new HexValue(table+".ic")));
+
+        }
+
 
 
         // Convert query to a SELECT * to obtain all tuples
