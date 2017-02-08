@@ -172,9 +172,11 @@ public class OCTQueryVerifier extends QueryVerifier {
 
                     totalDataSize+=dataBytes.length;
                     totalSerialSize+=serialBytes.length;
+                    //test for RSA without sha hash!
+                   // RSASHA1Signer signer=new RSASHA1Signer(key.getModulus(),key.getExponent());
+                    //message = message.multiply(new BigInteger(signer.computehash(allData))).mod(key.getModulus());
 
-                    RSASHA1Signer signer=new RSASHA1Signer(key.getModulus(),key.getExponent());
-                    message = message.multiply(new BigInteger(signer.computehash(allData))).mod(key.getModulus());
+                    message = message.multiply(new BigInteger(allData)).mod(key.getModulus());
                 }else{
                     sigBuilderClient.append(Hex.toHexString(regenerateSignature(serial,data)));
                 }
