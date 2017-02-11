@@ -362,7 +362,7 @@ public abstract class QueryVerifier {
         final byte[] dataBytes = data.getBytes(Charsets.UTF_8);
 
         final byte[] allBytes = ArrayUtils.addAll(dataBytes, serialBytes);
-        totalDataSize+=dataBytes.length;
+       // totalDataSize+=dataBytes.length;
         totalSerialSize+=serialBytes.length;
 
             return codeGen.generateSignature(allBytes);

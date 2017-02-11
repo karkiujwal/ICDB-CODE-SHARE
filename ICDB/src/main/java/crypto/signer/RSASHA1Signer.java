@@ -21,14 +21,11 @@ public class RSASHA1Signer {
         this.modulus=modulus;
     }
 
-//    public byte[] computeSHA1RSA(byte[] data){
-//        return computeRSA(computehash(data));
-//    }
-
-    //testing with RSA without SHA1
     public byte[] computeSHA1RSA(byte[] data){
-        return computeRSA(data);
+        return computeRSA(computehash(data));
     }
+
+
 
 
     public byte[] computehash(byte[] data){
@@ -58,12 +55,10 @@ public class RSASHA1Signer {
         return new BigInteger(hash).modPow(exponent, modulus).toByteArray();
     }
 
-//    public boolean verify(byte[] data, byte[] signature) {
-//        return Arrays.equals(computeSHA1RSA(data), signature);
-//    }
-
     public boolean verify(byte[] data, byte[] signature) {
-        return Arrays.equals(computeRSA(data), signature);
+        return Arrays.equals(computeSHA1RSA(data), signature);
     }
+
+
 
 }

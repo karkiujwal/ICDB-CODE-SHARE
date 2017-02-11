@@ -121,7 +121,7 @@ public class OCFQueryVerifier extends QueryVerifier {
             final long serial = (long) record.get(dataSize + i);
           //  final byte[] signature = (byte[]) record.get(dataSize + 2 * i);
              String data = record.get(i).toString();
-
+            totalDataSize+=data.getBytes().length;
 
             //concat the primary keys values
             if (icdbQuery.isJoinQuery){
@@ -167,14 +167,13 @@ public class OCFQueryVerifier extends QueryVerifier {
                 // final String serialString = Long.toString(serial);
                 final byte[] serialBytes = ByteBuffer.allocate(8).putLong(serial).array();
 
-                totalDataSize+=dataBytes.length;
+              //  totalDataSize+=dataBytes.length;
                 totalSerialSize+=serialBytes.length;
 
                 final byte[] allData = ArrayUtils.addAll(dataBytes, serialBytes);
 
-               // RSASHA1Signer signer=new RSASHA1Signer(key.getModulus(),key.getExponent());
-              //  message = message.multiply(new BigInteger(signer.computehash(allData))).mod(key.getModulus());
-                message = message.multiply(new BigInteger(allData)).mod(key.getModulus());
+                RSASHA1Signer signer=new RSASHA1Signer(key.getModulus(),key.getExponent());
+                message = message.multiply(new BigInteger(signer.computehash(allData))).mod(key.getModulus());
 
             }else{
                 sigBuilderClient.append(Hex.toHexString(regenerateSignature(serial,data)));
