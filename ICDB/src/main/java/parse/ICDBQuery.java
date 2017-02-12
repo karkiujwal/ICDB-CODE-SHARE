@@ -182,15 +182,17 @@ public abstract class ICDBQuery {
 
         Set set = columnComputedValue.entrySet();
         Iterator iterator = set.iterator();
+
         while(iterator.hasNext()) {
             Map.Entry entry = (Map.Entry)iterator.next();
-            logger.info(result.getValues(0));
+            logger.info(result.getValues((String) entry.getKey()).get(0).toString());
 
 
 
             if (Double.parseDouble(result.getValues((String) entry.getKey()).get(0).toString())!=(Double) (entry.getValue())){
                 return false;
             }
+
         }
 
         String resultstr = result.toString();

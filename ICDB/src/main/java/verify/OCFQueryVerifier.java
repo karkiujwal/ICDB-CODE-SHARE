@@ -58,7 +58,20 @@ public class OCFQueryVerifier extends QueryVerifier {
                 List<String>primaryKeysList=icdb.getPrimaryKeys(table);
                 //  Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
                 for (String primarykey:primaryKeysList) {
-                    data=data.concat(record.get(primarykey).toString());
+                    //get primary key index, as the join query has same primary keys from two different tables.. (hacky here)
+                    int breaksize=0;
+                   int index=0;
+                    for (Field field:record.fields()) {
+                        if (field.toString().equalsIgnoreCase("\""+table+"\".\""+primarykey+"\"")){
+                            data=data.concat(record.get(index).toString());
+                            breaksize++;
+                        }
+                        if(breaksize==primaryKeysList.size()){
+                            break;
+                        }
+                        index++;
+                    }
+
                 }
             }else{
                 List<String>primaryKeysList=icdb.getPrimaryKeys(tableList.get(0));
@@ -130,7 +143,19 @@ public class OCFQueryVerifier extends QueryVerifier {
                 List<String>primaryKeysList=icdb.getPrimaryKeys(table);
                 //  Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
                 for (String primarykey:primaryKeysList) {
-                    data=data.concat(record.get(primarykey).toString());
+                    //get primary key index, as the join query has same primary keys from two different tables.. (hacky here)
+                    int breaksize=0;
+                    int index=0;
+                    for (Field field:record.fields()) {
+                        if (field.toString().equalsIgnoreCase("\""+table+"\".\""+primarykey+"\"")){
+                            data=data.concat(record.get(index).toString());
+                            breaksize++;
+                        }
+                        if(breaksize==primaryKeysList.size()){
+                            break;
+                        }
+                        index++;
+                    }
                 }
             }else{
                 List<String>primaryKeysList=icdb.getPrimaryKeys(tableList.get(0));
