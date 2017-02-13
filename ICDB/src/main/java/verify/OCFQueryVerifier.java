@@ -45,34 +45,34 @@ public class OCFQueryVerifier extends QueryVerifier {
     protected boolean verifyRecord(Record record, ICDBQuery icdbQuery) {
         final int dataSize = record.size() / 3;
         List<String> tableList=icdbQuery.queryTableName;
+        List<Integer> tableFieldCount=new ArrayList<>();
+        int tableindex=0;
+        int fieldcount=0;  //no of fields counted in loop
+        for (String table:tableList) {
+            tableFieldCount.add(icdb.getFields(table).size()/3);
+        }
+
 
         for (int i = 0; i < dataSize; i++) {
+            fieldcount++;
+
             final long serial = (long) record.get(dataSize + 2 * i + 1);
             final byte[] signature = (byte[]) record.get(dataSize + 2 * i);
              String data = record.get(i).toString();
 
             //concat the primary keys values
             if (icdbQuery.isJoinQuery){
-                //get table name from the record field name
-                String table= record.field(i).toString().split("\\.")[0].replace("\"", "");
-                List<String>primaryKeysList=icdb.getPrimaryKeys(table);
+                //check if the field index belongs to table[index]
+                if(tableFieldCount.get(tableindex)<fieldcount){
+                    tableindex++;
+                    fieldcount=1;
+                }
+                List<String>primaryKeysList=icdb.getPrimaryKeys(tableList.get(tableindex));
                 //  Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
                 for (String primarykey:primaryKeysList) {
-                    //get primary key index, as the join query has same primary keys from two different tables.. (hacky here)
-                    int breaksize=0;
-                   int index=0;
-                    for (Field field:record.fields()) {
-                        if (field.toString().equalsIgnoreCase("\""+table+"\".\""+primarykey+"\"")){
-                            data=data.concat(record.get(index).toString());
-                            breaksize++;
-                        }
-                        if(breaksize==primaryKeysList.size()){
-                            break;
-                        }
-                        index++;
-                    }
-
+                    data=data.concat(record.get(primarykey).toString());
                 }
+
             }else{
                 List<String>primaryKeysList=icdb.getPrimaryKeys(tableList.get(0));
                 //  Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
@@ -127,10 +127,15 @@ public class OCFQueryVerifier extends QueryVerifier {
 
         final int dataSize = record.size() / 2;
         List<String> tableList=icdbQuery.queryTableName;
-
+        List<Integer> tableFieldCount=new ArrayList<>();
+        int tableindex=0;
+        int fieldcount=0;  //no of fields counted in loop
+        for (String table:tableList) {
+            tableFieldCount.add(icdb.getFields(table).size()/3);
+        }
 
         for (int i = 0; i < dataSize; i++) {
-
+            fieldcount++;
             final long serial = (long) record.get(dataSize + i);
           //  final byte[] signature = (byte[]) record.get(dataSize + 2 * i);
              String data = record.get(i).toString();
@@ -138,25 +143,36 @@ public class OCFQueryVerifier extends QueryVerifier {
 
             //concat the primary keys values
             if (icdbQuery.isJoinQuery){
-                //get table name from the record field name
-                String table= record.field(i).toString().split("\\.")[0].replace("\"", "");
-                List<String>primaryKeysList=icdb.getPrimaryKeys(table);
+               //check if the field index belongs to table[index]
+                if(tableFieldCount.get(tableindex)<fieldcount){
+                    tableindex++;
+                    fieldcount=1;
+                }
+                List<String>primaryKeysList=icdb.getPrimaryKeys(tableList.get(tableindex));
                 //  Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
                 for (String primarykey:primaryKeysList) {
-                    //get primary key index, as the join query has same primary keys from two different tables.. (hacky here)
-                    int breaksize=0;
-                    int index=0;
-                    for (Field field:record.fields()) {
-                        if (field.toString().equalsIgnoreCase("\""+table+"\".\""+primarykey+"\"")){
-                            data=data.concat(record.get(index).toString());
-                            breaksize++;
-                        }
-                        if(breaksize==primaryKeysList.size()){
-                            break;
-                        }
-                        index++;
-                    }
+                    data=data.concat(record.get(primarykey).toString());
                 }
+
+//                //get table name from the record field name
+//                String table= record.field(i).toString().split("\\.")[0].replace("\"", "");
+//                List<String>primaryKeysList=icdb.getPrimaryKeys(table);
+//                //  Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
+//                for (String primarykey:primaryKeysList) {
+//                    //get primary key index, as the join query has same primary keys from two different tables.. (hacky here)
+//                    int breaksize=0;
+//                    int index=0;
+//                    for (Field field:record.fields()) {
+//                        if (field.toString().equalsIgnoreCase("\""+table+"\".\""+primarykey+"\"")){
+//                            data=data.concat(record.get(index).toString());
+//                            breaksize++;
+//                        }
+//                        if(breaksize==primaryKeysList.size()){
+//                            break;
+//                        }
+//                        index++;
+//                    }
+//                }
             }else{
                 List<String>primaryKeysList=icdb.getPrimaryKeys(tableList.get(0));
                 //  Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
