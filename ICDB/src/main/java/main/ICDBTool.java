@@ -138,6 +138,7 @@ public class ICDBTool {
 
             logger.info("Verify query:");
             logger.info(Format.limit(icdbQuery.getVerifyQuery()));
+            System.out.println(icdbQuery.getVerifyQuery());
 
             logger.info("Converted query:");
             logger.info(Format.limit(icdbQuery.getConvertedQuery()));

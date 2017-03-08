@@ -59,7 +59,7 @@ public class OCFQueryVerifier extends QueryVerifier {
             final long serial = (long) record.get(dataSize + 2 * i + 1);
             final byte[] signature = (byte[]) record.get(dataSize + 2 * i);
              String data = record.get(i).toString();
-
+            data=data.concat(delimeter);
             //concat the primary keys values
             if (icdbQuery.isJoinQuery){
                 //check if the field index belongs to table[index]
@@ -81,6 +81,8 @@ public class OCFQueryVerifier extends QueryVerifier {
                 }
             }
 
+            //concat attribute name
+            data=data.concat(record.field(i).toString().split("\\.")[1].replace("\"", "").toLowerCase());
 
 
             //concat table name to the end
@@ -140,6 +142,7 @@ public class OCFQueryVerifier extends QueryVerifier {
           //  final byte[] signature = (byte[]) record.get(dataSize + 2 * i);
              String data = record.get(i).toString();
             totalDataSize+=data.getBytes().length;
+            data=data.concat(delimeter);
 
             //concat the primary keys values
             if (icdbQuery.isJoinQuery){
@@ -181,7 +184,8 @@ public class OCFQueryVerifier extends QueryVerifier {
                 }
             }
 
-
+            //concat attribute name
+            data=data.concat(record.field(i).toString().split("\\.")[1].replace("\"", "").toLowerCase());
 
             //concat table name to the end
             if (icdbQuery.isJoinQuery){

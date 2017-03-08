@@ -81,6 +81,9 @@ public abstract class QueryVerifier {
 
     BigInteger finalClientSig=BigInteger.ONE;
 
+    protected   String delimeter;
+
+
 
     public QueryVerifier(DBConnection icdb, UserConfig dbConfig, int threads, DataSource.Fetch fetch, RunStatistics statistics) {
         this.icdb = icdb;
@@ -91,6 +94,7 @@ public abstract class QueryVerifier {
         this.statistics = statistics;
         key=codeGen.getKey();
         this.icdbCreate = icdb.getCreate();
+        delimeter=",";
     }
 
     /**

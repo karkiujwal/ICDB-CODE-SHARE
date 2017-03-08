@@ -56,6 +56,7 @@ public class OCTQueryVerifier extends QueryVerifier {
             if (!attr.getName().equals("ic") && !attr.getName().equals("serial")) {
                 final Object value = record.get(index);
                 builder.append(value);
+                builder.append(delimeter);
 
                 index++;
                 if (isSkip)
@@ -142,6 +143,7 @@ public class OCTQueryVerifier extends QueryVerifier {
             if (!attr.getName().equals("serial")) {
                 final Object value = record.get(index);
                 builder.append(value);
+                builder.append(delimeter);
                 index++;
 
             } else {

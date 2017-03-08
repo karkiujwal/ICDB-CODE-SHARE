@@ -39,6 +39,8 @@ public class FileConverter {
 	private final Granularity granularity;
 	private final DBConnection db;
 
+	private  String delimeter;
+
     private final AbstractIcrl icrl = Icrl.Companion.init();
 
 	private static final Logger logger = LogManager.getLogger();
@@ -47,6 +49,7 @@ public class FileConverter {
 		this.codeGen = codeGen;
 		this.granularity = granularity;
 		this.db = db;
+		delimeter=",";
 	}
 
 	public void convertFile(final File input, final File output) {
@@ -81,7 +84,14 @@ public class FileConverter {
         	//need to concat the table name
             // Combine the list into a string
 
-             String data = StringUtils.join(line.toArray());
+			String data="";
+			//add delimeter to each of the attribute data
+			for (String field : line) {
+				data=data.concat(field);
+				data=data.concat(delimeter);
+			}
+
+            // String data = StringUtils.join(line.toArray());
 			data=data.concat(table[0]);
             final byte[] dataBytes = data.getBytes(Charsets.UTF_8);
             convertLine(line, dataBytes, codeGen, icrl);
@@ -92,7 +102,8 @@ public class FileConverter {
 
 	private Stream<List<String>> convertLineOCF(Stream<List<String>> csvInput, String tablename) throws IOException {
 		List <Integer> primarykeyindexes= new ArrayList<>();
-     List<String> collector = new ArrayList<>();
+		List <String> attributelist= new ArrayList<>();
+     	List<String> collector = new ArrayList<>();
 		String[] table =tablename.split("\\.");
 
 
@@ -104,16 +115,25 @@ public class FileConverter {
 				List<String>primaryKeysList=db.getPrimaryKeys(table[0]);
 				Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
 				primarykeyindexes.addAll(getprimaryKeyIndex(line,primaryKeysList));
+				attributelist.addAll(getAttributeList(line));
 
 			}
 			collector.clear();
             collector.addAll(line);
+			int attrIndex=0;
             for (String field : line) {
 
+            	field=field.concat(delimeter);
             	//need to concat with primary key and table name
 				for (Integer index:primarykeyindexes) {
 					field=field.concat(line.get(index));
 				}
+
+				//concat attribute name
+				field=field.concat(attributelist.get(attrIndex));
+				attrIndex++;
+
+				//concat table name
 				field=field.concat(table[0]);
 
 
@@ -158,6 +178,7 @@ public class FileConverter {
 		List<Integer> primaryKeyIndex=new ArrayList<>();
 		int index=0;
 		for (String field:headerlist) {
+
 			for (String primarkey:primarykeys) {
 			if(field.equalsIgnoreCase(primarkey)){
 				primaryKeyIndex.add(index);
@@ -167,6 +188,20 @@ public class FileConverter {
 		index++;
 		}
 		return  primaryKeyIndex;
+
+	}
+
+	/**
+	 * get the list of attributes in a table
+	 * @param headerlist
+	 * @return
+	 */
+	private List <String> getAttributeList(List<String> headerlist ){
+		List<String> attributeList=new ArrayList<>();
+		for (String field:headerlist) {
+			attributeList.add(field.toLowerCase());
+		}
+		return  attributeList;
 
 	}
 
