@@ -189,6 +189,8 @@ public class OCTQuery extends ICDBQuery {
         // We verify delete so that we can revoke all deleted serial numbers
         Table table = delete.getTable();
 
+        queryTableName.add(table.getName());
+
         Select select = SelectUtils.buildSelectFromTableAndSelectItems(table, new AllColumns());
 
         // Apply the where clause to the SELECT
@@ -197,6 +199,11 @@ public class OCTQuery extends ICDBQuery {
 
         plainSelect.setLimit(delete.getLimit());
         plainSelect.setOrderByElements(delete.getOrderByElements());
+
+        //if aggregate, parse the generated select query
+        if (codeGen.getAlgorithm()== AlgorithmType.RSA_AGGREGATE || codeGen.getAlgorithm()== AlgorithmType.AES_AGGREGATE || codeGen.getAlgorithm()== AlgorithmType.SHA_AGGREGATE )
+            {return parseVerifyQuery(select);}
+
 
         return select;
     }
@@ -218,6 +225,8 @@ public class OCTQuery extends ICDBQuery {
 
         List<SelectItem> selectList = new ArrayList<>();
         selectList.add(new SelectExpressionItem(new HexValue("ic")));
+
+        plainSelect.setWhere(delete.getWhere());
 
 
         // Convert query to a SELECT * to obtain all tuples

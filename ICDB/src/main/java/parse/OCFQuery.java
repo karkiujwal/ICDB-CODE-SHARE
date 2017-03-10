@@ -231,6 +231,8 @@ public class OCFQuery extends ICDBQuery {
         // We verify delete so that we can revoke all deleted serial numbers
         Table table = delete.getTable();
 
+        queryTableName.add(table.getName());
+
         // Get all columns, because we are deleting the entire row
         Select select = SelectUtils.buildSelectFromTableAndSelectItems(table, new AllColumns());
 
@@ -241,12 +243,37 @@ public class OCFQuery extends ICDBQuery {
         plainSelect.setLimit(delete.getLimit());
         plainSelect.setOrderByElements(delete.getOrderByElements());
 
+        //if aggregate, parse the generated select query
+        if (codeGen.getAlgorithm()== AlgorithmType.RSA_AGGREGATE || codeGen.getAlgorithm()== AlgorithmType.AES_AGGREGATE || codeGen.getAlgorithm()== AlgorithmType.SHA_AGGREGATE )
+        {return parseVerifyQuery(select);}
+
         return select;
     }
 
     @Override
     protected Statement parseASVQuery(Delete delete) {
-        return null;
+
+        // We verify delete so that we can revoke all deleted serial numbers
+        Table table = delete.getTable();
+
+        queryTableName.add(table.getName());
+
+        // Get all columns, because we are deleting the entire row
+        Select select = SelectUtils.buildSelectFromTableAndSelectItems(table, new AllColumns());
+
+        // Apply the where clause to the SELECT
+        PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
+        plainSelect.setWhere(delete.getWhere());
+
+        plainSelect.setLimit(delete.getLimit());
+        plainSelect.setOrderByElements(delete.getOrderByElements());
+
+        //if aggregate, parse the generated select query
+        if (codeGen.getAlgorithm()== AlgorithmType.RSA_AGGREGATE || codeGen.getAlgorithm()== AlgorithmType.AES_AGGREGATE || codeGen.getAlgorithm()== AlgorithmType.SHA_AGGREGATE )
+        {return parseASVQuery(select);}
+
+        return select;
+
     }
 
     ////////////
