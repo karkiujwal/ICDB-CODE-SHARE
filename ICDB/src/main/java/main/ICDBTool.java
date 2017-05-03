@@ -321,7 +321,8 @@ public class ICDBTool {
         } else {
             logger.info(Format.limit(icdbQuery.getVerifyQuery()));
             logger.info("Query failed to verify");
-            logger.error(verifier.getError());
+            logger.info("List of corrupted data items:");
+            logger.info(verifier.getError());
         }
     }
 

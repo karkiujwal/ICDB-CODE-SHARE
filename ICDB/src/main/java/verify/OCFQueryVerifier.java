@@ -105,6 +105,8 @@ public class OCFQueryVerifier extends QueryVerifier {
                         .append(" : ")
                         .append(record.get(i))
                         .append("\n");
+               // logger.debug(record.field(i) + " : "+ record.get(i));
+
                 return false;
             }
 
