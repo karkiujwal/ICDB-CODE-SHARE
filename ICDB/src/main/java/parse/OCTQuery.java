@@ -172,7 +172,7 @@ public class OCTQuery extends ICDBQuery {
      */
     @Override
     protected Statement parseASVQuery(Insert insert) {
-        return null; // Verifying an insert statement is not necessary
+        return null;
     }
 
     ////////////

@@ -14,6 +14,10 @@ import org.apache.logging.log4j.Logger;
 import org.bouncycastle.util.encoders.Hex;
 import org.jooq.Field;
 import org.jooq.Record;
+import org.jooq.Table;
+import org.jooq.conf.Settings;
+import org.jooq.impl.DSL;
+import org.jooq.util.derby.sys.Sys;
 import parse.ICDBQuery;
 import stats.RunStatistics;
 
@@ -23,6 +27,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.jar.Attributes;
+
+import static org.jooq.impl.DSL.table;
 
 /**
  * <p>
@@ -62,16 +69,33 @@ public class OCFQueryVerifier extends QueryVerifier {
             data=data.concat(delimeter);
             //concat the primary keys values
             if (icdbQuery.isJoinQuery){
+
+
                 //check if the field index belongs to table[index]
                 if(tableFieldCount.get(tableindex)<fieldcount){
                     tableindex++;
                     fieldcount=1;
                 }
+
+                Field<?>[] fields=record.fields();
+
                 List<String>primaryKeysList=icdb.getPrimaryKeys(tableList.get(tableindex));
                 //  Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
                 for (String primarykey:primaryKeysList) {
-                    data=data.concat(record.get(primarykey).toString());
+                    int indexPK=0;
+                    //loop around fields[] to get the index in record for the Primary Key [little bit of a hack here!!]
+                    for (int j=0;j<fields.length;j++) {
+                        if(fields[j].toString().equalsIgnoreCase(("\""+tableList.get(tableindex)+"\".\""+primarykey+"\"")))                        {
+                            indexPK=j;
+                            break;
+                        }
+                    }
+
+                    //creates tablename.field using (field name, tablename)
+                   // Field<?> PKTable    = DSL.field(primarykey);
+                    data=data.concat(record.get(indexPK).toString());
                 }
+
 
             }else{
                 List<String>primaryKeysList=icdb.getPrimaryKeys(tableList.get(0));
@@ -153,10 +177,24 @@ public class OCFQueryVerifier extends QueryVerifier {
                     tableindex++;
                     fieldcount=1;
                 }
+
+                Field<?>[] fields=record.fields();
+
                 List<String>primaryKeysList=icdb.getPrimaryKeys(tableList.get(tableindex));
                 //  Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
                 for (String primarykey:primaryKeysList) {
-                    data=data.concat(record.get(primarykey).toString());
+                    int indexPK=0;
+                    //loop around fields[] to get the index in record for the Primary Key [little bit of a hack here!!]
+                    for (int j=0;j<fields.length;j++) {
+                        if(fields[j].toString().equalsIgnoreCase(("\""+tableList.get(tableindex)+"\".\""+primarykey+"\"")))                        {
+                            indexPK=j;
+                            break;
+                        }
+                    }
+
+                    //creates tablename.field using (field name, tablename)
+                    // Field<?> PKTable    = DSL.field(primarykey);
+                    data=data.concat(record.get(indexPK).toString());
                 }
 
 //                //get table name from the record field name
