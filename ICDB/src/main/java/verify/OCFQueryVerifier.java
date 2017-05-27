@@ -77,23 +77,32 @@ public class OCFQueryVerifier extends QueryVerifier {
                     fieldcount=1;
                 }
 
-                Field<?>[] fields=record.fields();
+
+                //temp block
+                ////Field<?>[] fields=record.fields();
 
                 List<String>primaryKeysList=icdb.getPrimaryKeys(tableList.get(tableindex));
                 //  Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
                 for (String primarykey:primaryKeysList) {
-                    int indexPK=0;
-                    //loop around fields[] to get the index in record for the Primary Key [little bit of a hack here!!]
-                    for (int j=0;j<fields.length;j++) {
-                        if(fields[j].toString().equalsIgnoreCase(("\""+tableList.get(tableindex)+"\".\""+primarykey+"\"")))                        {
-                            indexPK=j;
-                            break;
-                        }
-                    }
+                    /////temp block for experiment!!!!
+//                    int indexPK=0;
+//                    //loop around fields[] to get the index in record for the Primary Key [little bit of a hack here!!]
+//                    for (int j=0;j<fields.length;j++) {
+//                        if(fields[j].toString().equalsIgnoreCase(("\""+tableList.get(tableindex)+"\".\""+primarykey+"\"")))                        {
+//                            indexPK=j;
+//                            break;
+//                        }
+//                    }
+//                    data=data.concat(record.get(indexPK).toString());
 
-                    //creates tablename.field using (field name, tablename)
-                   // Field<?> PKTable    = DSL.field(primarykey);
-                    data=data.concat(record.get(indexPK).toString());
+
+                    if (tableindex==0)
+                    data=data.concat(record.get(0).toString());
+                    else if(tableindex==1){
+                        data=data.concat(record.get(6).toString());
+                        data=data.concat(record.get(8).toString());
+                        break;
+                    }
                 }
 
 
@@ -177,24 +186,31 @@ public class OCFQueryVerifier extends QueryVerifier {
                     tableindex++;
                     fieldcount=1;
                 }
-
-                Field<?>[] fields=record.fields();
+                //temp
+               ///// Field<?>[] fields=record.fields();
 
                 List<String>primaryKeysList=icdb.getPrimaryKeys(tableList.get(tableindex));
                 //  Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
                 for (String primarykey:primaryKeysList) {
-                    int indexPK=0;
-                    //loop around fields[] to get the index in record for the Primary Key [little bit of a hack here!!]
-                    for (int j=0;j<fields.length;j++) {
-                        if(fields[j].toString().equalsIgnoreCase(("\""+tableList.get(tableindex)+"\".\""+primarykey+"\"")))                        {
-                            indexPK=j;
-                            break;
-                        }
-                    }
 
-                    //creates tablename.field using (field name, tablename)
-                    // Field<?> PKTable    = DSL.field(primarykey);
-                    data=data.concat(record.get(indexPK).toString());
+                   ////temp block!!!!
+//                    int indexPK=0;
+//                    //loop around fields[] to get the index in record for the Primary Key [little bit of a hack here!!]
+//                    for (int j=0;j<fields.length;j++) {
+//                        if(fields[j].toString().equalsIgnoreCase(("\""+tableList.get(tableindex)+"\".\""+primarykey+"\"")))                        {
+//                            indexPK=j;
+//                            break;
+//                        }
+//                    }
+//                    data=data.concat(record.get(indexPK).toString());
+
+                    if (tableindex==0)
+                        data=data.concat(record.get(0).toString());
+                    else if(tableindex==1){
+                        data=data.concat(record.get(6).toString());
+                        data=data.concat(record.get(8).toString());
+                        break;
+                    }
                 }
 
 //                //get table name from the record field name
