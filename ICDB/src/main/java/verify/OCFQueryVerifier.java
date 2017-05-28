@@ -82,7 +82,7 @@ public class OCFQueryVerifier extends QueryVerifier {
                     data=data.concat(record.get(0).toString());
                 }
 
-//temporarily commented
+//temporarily commented join QUERY, Primary keys concatenation
                 /*
                 //check if the field index belongs to table[index]
                 if(tableFieldCount.get(tableindex)<fieldcount){
@@ -122,6 +122,7 @@ public class OCFQueryVerifier extends QueryVerifier {
                 }
             }
 
+            /*
             //concat attribute name
             data=data.concat(record.field(i).toString().split("\\.")[1].replace("\"", "").toLowerCase());
 
@@ -135,6 +136,15 @@ public class OCFQueryVerifier extends QueryVerifier {
             }else{
                 data=data.concat(tableList.get(0));
             }
+
+            */
+
+
+            //optimized code
+            //attribute name
+            data=data.concat(icdbQuery.attributeNames.get(i));
+            //table name
+            data=data.concat(icdbQuery.attributetables.get(i));
 
 
 
@@ -233,25 +243,7 @@ public class OCFQueryVerifier extends QueryVerifier {
 
                 */
 
-//                //get table name from the record field name
-//                String table= record.field(i).toString().split("\\.")[0].replace("\"", "");
-//                List<String>primaryKeysList=icdb.getPrimaryKeys(table);
-//                //  Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
-//                for (String primarykey:primaryKeysList) {
-//                    //get primary key index, as the join query has same primary keys from two different tables.. (hacky here)
-//                    int breaksize=0;
-//                    int index=0;
-//                    for (Field field:record.fields()) {
-//                        if (field.toString().equalsIgnoreCase("\""+table+"\".\""+primarykey+"\"")){
-//                            data=data.concat(record.get(index).toString());
-//                            breaksize++;
-//                        }
-//                        if(breaksize==primaryKeysList.size()){
-//                            break;
-//                        }
-//                        index++;
-//                    }
-//                }
+
             }else{
                 List<String>primaryKeysList=icdb.getPrimaryKeys(tableList.get(0));
                 //  Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
@@ -260,6 +252,7 @@ public class OCFQueryVerifier extends QueryVerifier {
                 }
             }
 
+            /*
             //concat attribute name
             data=data.concat(record.field(i).toString().split("\\.")[1].replace("\"", "").toLowerCase());
 
@@ -273,7 +266,13 @@ public class OCFQueryVerifier extends QueryVerifier {
                 data=data.concat(tableList.get(0));
             }
 
+            */
 
+            //optimized code
+            //attribute name
+            data=data.concat(icdbQuery.attributeNames.get(i));
+            //table name
+            data=data.concat(icdbQuery.attributetables.get(i));
 
             //check the ICRL
             if (!icrl.contains(serial)) {

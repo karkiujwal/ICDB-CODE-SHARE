@@ -11,6 +11,7 @@ import io.source.DBSource;
 import io.source.DataSource;
 import main.ICDBTool;
 import main.args.config.UserConfig;
+import main.args.option.Granularity;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -110,8 +111,6 @@ public abstract class QueryVerifier {
 
         Stopwatch queryFetchTime = Stopwatch.createStarted();
         Stream<Record> records = DBSource.stream(icdb, icdbQuery.getVerifyQuery(), fetch);
-
-
         statistics.setDataFetchTime(queryFetchTime.elapsed(ICDBTool.TIME_UNIT));
         logger.debug("Data fetch time: {}", statistics.getDataFetchTime());
 
@@ -272,6 +271,24 @@ public abstract class QueryVerifier {
      * @return true if the query is verified
      */
     private boolean verifyRecords(Stream<Record> records, ICDBQuery icdbQuery) {
+
+        //backup optimizatio code (for adding attrname and table name to data value)
+//        if(userConfig.granularity== Granularity.FIELD){
+//
+//            Optional<Record> Optrecord=records.findFirst();
+//            //record.toString();
+//            List<String> tables=new ArrayList<>();
+//            List<String> attributeNames=new ArrayList<>();
+//            Record record= Optrecord.get();
+//            for (Field field:record.fields()) {
+//                System.out.println(field.toString());
+//                    tables.add(field.toString().split("\\.")[0].replace("\"", ""));
+//                    attributeNames.add(field.toString().split("\\.")[1].replace("\"", "").toLowerCase());
+//            }
+//            icdbQuery.tables=tables;
+//            icdbQuery.attributeNames=attributeNames;
+//
+//        }
         final ForkJoinPool threadPool = threads < 1 ? new ForkJoinPool() : new ForkJoinPool(threads);
 
         logger.debug("Using {} thread(s)", threadPool.getParallelism());

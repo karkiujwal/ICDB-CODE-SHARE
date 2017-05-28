@@ -71,6 +71,7 @@ public class OCFQuery extends ICDBQuery {
                     int total=Fields.size();
                     for (int i=0; i<total/3;i++) {
                         selectItems.add(new SelectExpressionItem(new HexValue(Fields.get(i))));
+
                     }
                 }
             }else if(plainSelect.getJoins()!=null){
@@ -82,10 +83,14 @@ public class OCFQuery extends ICDBQuery {
                     int total=Fields.size();
                     for (int i=0; i<total/3;i++) {
                         selectItems.add(new SelectExpressionItem(new HexValue(table.toLowerCase()+"."+Fields.get(i))));
+                        //for use in OCFVerification (attrname,tablename)
+                        attributetables.add(table.toLowerCase());
+                        attributeNames.add(Fields.get(i).toLowerCase());
                     }
                 }
                 List<SelectItem> signatureItems = getICSelectItems(selectItems, Format.IC_SUFFIX, Format.SERIAL_SUFFIX);
                 selectItems.addAll(signatureItems);
+
 
                 if (codeGen.getAlgorithm()== AlgorithmType.RSA_AGGREGATE || codeGen.getAlgorithm()== AlgorithmType.AES_AGGREGATE || codeGen.getAlgorithm()== AlgorithmType.SHA_AGGREGATE ) {
                     if(!skipFilter){
@@ -120,6 +125,8 @@ public class OCFQuery extends ICDBQuery {
                             isAggregateQuery=true;
                         String columnname=function.getParameters().toString();
 
+
+
                             if(!aggregateFxnColumn.contains(columnname.substring(1, columnname.length()-1)))
                         aggregateFxnColumn.add(columnname.substring(1, columnname.length()-1));
                             //map column name with operation for verification of aggregate function result
@@ -138,8 +145,20 @@ public class OCFQuery extends ICDBQuery {
         addWhereColumn(selectItems, plainSelect.getWhere());
         tables.forEach(table -> addPrimaryKeyColumn(selectItems, table));
 
+        if(attributeNames.size()==0 && attributetables.size()==0)
+        for (SelectItem item:selectItems) {
+            //for use in OCFVerification (attrname,tablename)
+            attributetables.add(tables.get(0).toLowerCase());
+            System.out.println(item.toString());
+            if(item.toString().contains(".")) {
+                attributeNames.add(item.toString().split("\\.")[1].replace("\"", "").toLowerCase());
+            }else {
+                attributeNames.add(item.toString().toLowerCase());
+            }
+        }
         List<SelectItem> signatureItems = getICSelectItems(selectItems, Format.IC_SUFFIX, Format.SERIAL_SUFFIX);
         selectItems.addAll(signatureItems);
+
 
 
         //if RSA_Aggregate, exclude the IC column (ic is handled by aggregate signature generator)

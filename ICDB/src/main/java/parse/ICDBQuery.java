@@ -64,6 +64,11 @@ public abstract class ICDBQuery {
 
     private static final Logger logger = LogManager.getLogger();
 
+
+    //datas to be passed in OCF query verification.Here, just initialized.Will be assigned by QueryVerifier
+    public List<String> attributetables= new ArrayList<>();
+    public List<String> attributeNames= new ArrayList<>();
+
     /**
      * Converts a given plain SQL statement into an ICDB statement
      */

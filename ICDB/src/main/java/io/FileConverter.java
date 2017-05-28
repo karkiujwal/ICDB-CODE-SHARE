@@ -129,6 +129,7 @@ public class FileConverter {
 					field=field.concat(line.get(index));
 				}
 
+
 				//concat attribute name
 				field=field.concat(attributelist.get(attrIndex));
 				attrIndex++;
