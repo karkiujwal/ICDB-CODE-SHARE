@@ -68,9 +68,22 @@ public class OCFQueryVerifier extends QueryVerifier {
              String data = record.get(i).toString();
             data=data.concat(delimeter);
             //concat the primary keys values
-            if (icdbQuery.isJoinQuery){
+            if (icdbQuery.isJoinQuery) {
 
+                //for experimental purpose
+                //execute-query -q "SELECT * FROM employees Join salaries on employees.emp_no=salaries.emp_no limit 50000;" --threads 1 --fetch EAGER
+                if (fieldcount - 1 > 5){
+                    //salaries table
+                    data = data.concat(record.get(6).toString());
+                data = data.concat(record.get(8).toString());
+                }
+                else{
+                    //employees table
+                    data=data.concat(record.get(0).toString());
+                }
 
+//temporarily commented
+                /*
                 //check if the field index belongs to table[index]
                 if(tableFieldCount.get(tableindex)<fieldcount){
                     tableindex++;
@@ -96,14 +109,9 @@ public class OCFQueryVerifier extends QueryVerifier {
 //                    data=data.concat(record.get(indexPK).toString());
 
 
-                    if (tableindex==0)
-                    data=data.concat(record.get(0).toString());
-                    else if(tableindex==1){
-                        data=data.concat(record.get(6).toString());
-                        data=data.concat(record.get(8).toString());
-                        break;
-                    }
+
                 }
+                */
 
 
             }else{
@@ -181,37 +189,49 @@ public class OCFQueryVerifier extends QueryVerifier {
 
             //concat the primary keys values
             if (icdbQuery.isJoinQuery){
+
+//for experimental purpose
+                //execute-query -q "SELECT * FROM employees Join salaries on employees.emp_no=salaries.emp_no limit 50000;" --threads 1 --fetch EAGER
+                if (fieldcount - 1 > 5){
+                    //salaries table
+                    data = data.concat(record.get(6).toString());
+                    data = data.concat(record.get(8).toString());
+                }
+                else{
+                    //employees table
+                    data=data.concat(record.get(0).toString());
+                }
+
+///temp comment
+                /*
+
                //check if the field index belongs to table[index]
                 if(tableFieldCount.get(tableindex)<fieldcount){
                     tableindex++;
                     fieldcount=1;
                 }
                 //temp
-               ///// Field<?>[] fields=record.fields();
+                Field<?>[] fields=record.fields();
 
                 List<String>primaryKeysList=icdb.getPrimaryKeys(tableList.get(tableindex));
                 //  Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
                 for (String primarykey:primaryKeysList) {
 
                    ////temp block!!!!
-//                    int indexPK=0;
-//                    //loop around fields[] to get the index in record for the Primary Key [little bit of a hack here!!]
-//                    for (int j=0;j<fields.length;j++) {
-//                        if(fields[j].toString().equalsIgnoreCase(("\""+tableList.get(tableindex)+"\".\""+primarykey+"\"")))                        {
-//                            indexPK=j;
-//                            break;
-//                        }
-//                    }
-//                    data=data.concat(record.get(indexPK).toString());
-
-                    if (tableindex==0)
-                        data=data.concat(record.get(0).toString());
-                    else if(tableindex==1){
-                        data=data.concat(record.get(6).toString());
-                        data=data.concat(record.get(8).toString());
-                        break;
+                    int indexPK=0;
+                    //loop around fields[] to get the index in record for the Primary Key [little bit of a hack here!!]
+                    for (int j=0;j<fields.length;j++) {
+                        if(fields[j].toString().equalsIgnoreCase(("\""+tableList.get(tableindex)+"\".\""+primarykey+"\"")))                        {
+                            indexPK=j;
+                            break;
+                        }
                     }
+                    data=data.concat(record.get(indexPK).toString());
+
+
                 }
+
+                */
 
 //                //get table name from the record field name
 //                String table= record.field(i).toString().split("\\.")[0].replace("\"", "");
