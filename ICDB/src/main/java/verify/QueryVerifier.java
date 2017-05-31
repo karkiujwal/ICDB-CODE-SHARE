@@ -139,7 +139,6 @@ public abstract class QueryVerifier {
 
         //time to verify the query results, time to
         logger.debug("Data verification time/final message generation time(for ALGO_AGGREGATE): {}", statistics.getVerificationTime());
-
         logger.debug("Aggregate Query Fetch Time: {}", statistics.getAggregateRecordFetchTime());
         logger.debug("Aggregate Signature generation time: {}", statistics.getAggregateSigGenerationTime());
         logger.debug("Aggregate Final Verification time(microsec): {}", statistics.getAGG_final_verificationTime());

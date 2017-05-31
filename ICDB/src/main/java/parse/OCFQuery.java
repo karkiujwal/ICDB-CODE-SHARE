@@ -61,7 +61,7 @@ public class OCFQuery extends ICDBQuery {
         List<SelectItem> selectItems = plainSelect.getSelectItems();
 
         // If SELECT *, the verify query is the same, and if join with *, rearrange fields of both tables combined
-        //note: conditions disabled for consistency with RSA_Aggregate!!
+        //note: conditions disabled for consistency with Aggregate queries Q1 + Q2 =Q!!
         if (selectItems.get(0) instanceof AllColumns ) {
             if ( plainSelect.getJoins()==null){
                 selectItems.clear();
@@ -255,9 +255,21 @@ public class OCFQuery extends ICDBQuery {
         // Get all columns, because we are deleting the entire row
         Select select = SelectUtils.buildSelectFromTableAndSelectItems(table, new AllColumns());
 
+
+
         // Apply the where clause to the SELECT
         PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
         plainSelect.setWhere(delete.getWhere());
+
+        //get list ot table and attribute names
+        List<SelectItem> selectItems = plainSelect.getSelectItems();
+        List<String> Fields=icdb.getFields(table.getName());
+        int total=Fields.size();
+        for (int i=0; i<total/3;i++) {
+            //for use in OCFVerification (attrname,tablename)
+            attributetables.add(table.getName().toLowerCase());
+            attributeNames.add(Fields.get(i).toLowerCase());
+        }
 
         plainSelect.setLimit(delete.getLimit());
         plainSelect.setOrderByElements(delete.getOrderByElements());
