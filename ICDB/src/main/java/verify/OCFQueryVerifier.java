@@ -66,7 +66,7 @@ public class OCFQueryVerifier extends QueryVerifier {
             final long serial = (long) record.get(dataSize + 2 * i + 1);
             final byte[] signature = (byte[]) record.get(dataSize + 2 * i);
              String data = record.get(i).toString();
-            data=data.concat(delimeter);
+          ///////////  data=data.concat(delimeter);
             //concat the primary keys values
             if (icdbQuery.isJoinQuery) {
 
@@ -115,15 +115,19 @@ public class OCFQueryVerifier extends QueryVerifier {
 
 
             }else{
+
+                //temp exp
+                /*
                 List<String>primaryKeysList=icdb.getPrimaryKeys(tableList.get(0));
                 //  Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
                 for (String primarykey:primaryKeysList) {
                     data=data.concat(record.get(primarykey).toString());
                 }
+                */
             }
 
             /*
-            //concat attribute name
+            //concat attribute name (OLD)
             data=data.concat(record.field(i).toString().split("\\.")[1].replace("\"", "").toLowerCase());
 
 
@@ -139,14 +143,15 @@ public class OCFQueryVerifier extends QueryVerifier {
 
             */
 
-
-            //optimized code
+        //temp exp
+            /*
+            //optimized code (NEW)
             //attribute name
             data=data.concat(icdbQuery.attributeNames.get(i));
             //table name
             data=data.concat(icdbQuery.attributetables.get(i));
 
-
+            */
 
             final boolean verified = verifyData(serial, signature, data);
 
@@ -161,9 +166,10 @@ public class OCFQueryVerifier extends QueryVerifier {
                 return false;
             }
 
+            //temp exp
             //if delete query, add the serials to be revoked in the list
-            if (icdbQuery.isDeleteQuery)
-                icdbQuery.serialsToBeRevoked.add(serial);
+//            if (icdbQuery.isDeleteQuery)
+//                icdbQuery.serialsToBeRevoked.add(serial);
 
             if (icdbQuery.isAggregateQuery && i==dataSize-1) {
                 Stopwatch aggregateOperationTime = Stopwatch.createStarted();
@@ -199,7 +205,7 @@ public class OCFQueryVerifier extends QueryVerifier {
           //  final byte[] signature = (byte[]) record.get(dataSize + 2 * i);
              String data = record.get(i).toString();
             totalDataSize+=data.getBytes().length;
-            data=data.concat(delimeter);
+           ////// data=data.concat(delimeter);
 
             //concat the primary keys values
             if (icdbQuery.isJoinQuery){
@@ -249,11 +255,11 @@ public class OCFQueryVerifier extends QueryVerifier {
 
 
             }else{
-                List<String>primaryKeysList=icdb.getPrimaryKeys(tableList.get(0));
-                //  Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
-                for (String primarykey:primaryKeysList) {
-                    data=data.concat(record.get(primarykey).toString());
-                }
+//                List<String>primaryKeysList=icdb.getPrimaryKeys(tableList.get(0));
+//                //  Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
+//                for (String primarykey:primaryKeysList) {
+//                    data=data.concat(record.get(primarykey).toString());
+//                }
             }
 
             /*
@@ -272,11 +278,11 @@ public class OCFQueryVerifier extends QueryVerifier {
 
             */
 
-            //optimized code
-            //attribute name
-            data=data.concat(icdbQuery.attributeNames.get(i));
-            //table name
-            data=data.concat(icdbQuery.attributetables.get(i));
+//            //optimized code
+//            //attribute name
+//            data=data.concat(icdbQuery.attributeNames.get(i));
+//            //table name
+//            data=data.concat(icdbQuery.attributetables.get(i));
 
             //check the ICRL
             if (!icrl.contains(serial)) {
@@ -304,8 +310,8 @@ public class OCFQueryVerifier extends QueryVerifier {
             }
 
             //if delete query, add the serials to be revoked in the list
-            if (icdbQuery.isDeleteQuery)
-                icdbQuery.serialsToBeRevoked.add(serial);
+//            if (icdbQuery.isDeleteQuery)
+//                icdbQuery.serialsToBeRevoked.add(serial);
 
             if (icdbQuery.isAggregateQuery && i==dataSize-1) {
                 Stopwatch aggregateOperationTime = Stopwatch.createStarted();
