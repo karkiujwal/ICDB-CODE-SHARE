@@ -10,6 +10,13 @@ import io.Format;
 import io.source.DataSource;
 import main.ICDBTool;
 import main.args.config.UserConfig;
+import net.sf.jsqlparser.JSQLParserException;
+import net.sf.jsqlparser.parser.CCJSqlParserManager;
+import net.sf.jsqlparser.statement.Statement;
+import net.sf.jsqlparser.statement.delete.Delete;
+import net.sf.jsqlparser.statement.insert.Insert;
+import net.sf.jsqlparser.statement.select.Select;
+import net.sf.jsqlparser.statement.update.Update;
 import org.apache.commons.lang3.ArrayUtils;
 import org.bouncycastle.util.encoders.Hex;
 import org.jooq.Field;
@@ -18,6 +25,8 @@ import stats.RunStatistics;
 
 import parse.ICDBQuery;
 
+import java.io.Reader;
+import java.io.StringReader;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -30,6 +39,7 @@ import java.util.List;
  */
 public class OCTQueryVerifier extends QueryVerifier {
 
+    private final CCJSqlParserManager parserManager = new CCJSqlParserManager();
     public OCTQueryVerifier(DBConnection icdb, UserConfig dbConfig, int threads, DataSource.Fetch fetch, RunStatistics statistics) {
         super(icdb, dbConfig, threads, fetch, statistics);
     }
@@ -86,6 +96,12 @@ public class OCTQueryVerifier extends QueryVerifier {
                             .append("\n");
                     break;
                 }
+
+                //if delete query, add the serials to be revoked in the list
+                if (icdbQuery.isDeleteQuery)
+                    icdbQuery.serialsToBeRevoked.add(serial);
+
+
 
                 if (record.size() == index + 2)
                     break;
@@ -183,6 +199,9 @@ public class OCTQueryVerifier extends QueryVerifier {
                 }else{
                     sigBuilderClient.append(Hex.toHexString(regenerateSignature(serial,data)));
                 }
+                //if delete query, add the serials to be revoked in the list
+                if (icdbQuery.isDeleteQuery)
+                    icdbQuery.serialsToBeRevoked.add(serial);
                 builder.setLength(0);
                // sig = sig.multiply(new BigInteger(signature)).mod(key.getModulus());
 

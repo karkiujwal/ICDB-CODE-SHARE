@@ -161,6 +161,10 @@ public class OCFQueryVerifier extends QueryVerifier {
                 return false;
             }
 
+            //if delete query, add the serials to be revoked in the list
+            if (icdbQuery.isDeleteQuery)
+                icdbQuery.serialsToBeRevoked.add(serial);
+
             if (icdbQuery.isAggregateQuery && i==dataSize-1) {
                 Stopwatch aggregateOperationTime = Stopwatch.createStarted();
                 computeAggregateOperation(icdbQuery, record);
@@ -298,6 +302,10 @@ public class OCFQueryVerifier extends QueryVerifier {
             }else{
                 sigBuilderClient.append(Hex.toHexString(regenerateSignature(serial,data)));
             }
+
+            //if delete query, add the serials to be revoked in the list
+            if (icdbQuery.isDeleteQuery)
+                icdbQuery.serialsToBeRevoked.add(serial);
 
             if (icdbQuery.isAggregateQuery && i==dataSize-1) {
                 Stopwatch aggregateOperationTime = Stopwatch.createStarted();

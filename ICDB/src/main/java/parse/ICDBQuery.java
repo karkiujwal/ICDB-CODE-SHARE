@@ -55,11 +55,12 @@ public abstract class ICDBQuery {
     protected AbstractIcrl icrl = Icrl.Companion.getIcrl();
 
     // Update the ICRL if this query was successful
-    protected List<Long> serialsToBeRevoked = new ArrayList<>();
+    public List<Long> serialsToBeRevoked = new ArrayList<>();
 
     public Map<String, String> columnOperation = new ConcurrentHashMap<String, String>();
     public boolean isAggregateQuery;
     public boolean isJoinQuery;
+    public boolean isDeleteQuery;
     private boolean requiresUpdate;
 
     private static final Logger logger = LogManager.getLogger();
@@ -101,6 +102,7 @@ public abstract class ICDBQuery {
             } else if (statement instanceof Insert) {
                 statement = queryType.parseQuery((Insert) statement, this);
             } else if (statement instanceof Delete) {
+                isDeleteQuery=true;
                 statement = queryType.parseQuery((Delete) statement, this);
             } else if (statement instanceof Update) {
                 requiresUpdate = true;
