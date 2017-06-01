@@ -61,7 +61,7 @@ public abstract class ICDBQuery {
     public boolean isAggregateQuery;
     public boolean isJoinQuery;
     public boolean isDeleteQuery;
-    private boolean requiresUpdate;
+    public boolean requiresUpdate;
 
     private static final Logger logger = LogManager.getLogger();
 

@@ -2,13 +2,13 @@ package main;
 
 import java.io.*;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.google.common.base.Charsets;
 import crypto.AlgorithmType;
@@ -67,7 +67,10 @@ public class ICDBTool {
 
     protected AbstractIcrl icrl = Icrl.Companion.getIcrl();
 
-	public static void main(String[] args) throws FileNotFoundException {
+    public  static Map<Integer, Long> ICRLmap;
+
+
+    public static void main(String[] args) throws FileNotFoundException {
 
 
 
@@ -85,6 +88,29 @@ public class ICDBTool {
         UserConfig dbConfig = UserConfig.init(configArgs);
 
         Icrl.Companion.debug(!dbConfig.validateIcrl);
+
+        //load the ICRL hash MAP
+        ///update ICRLHASH for newly updated ICRL file (NOTE:TIME is not reported for background update of ICRLMAP)
+
+
+        ICRLmap=new HashMap<>();
+        try {
+            File f = new File("ICRL.txt");
+            if(!f.exists())
+                f.createNewFile();
+
+            try(Stream<String> lines = Files.lines(Paths.get("ICRL.txt"))){
+                try {
+                    Files.lines(Paths.get("ICRL.txt")).forEach(
+                            line -> ICRLmap.putIfAbsent(line.hashCode(), Long.valueOf(line))
+                    );
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
 		DBConnection.configure(dbConfig);
 
@@ -105,9 +131,12 @@ public class ICDBTool {
 			System.exit(0);
 		}
 
+
+
         logger.info("");
 		logger.info("Total time elapsed: {}", totalTime.elapsed(ICDBTool.TIME_UNIT));
 	}
+
 
 	/**
 	 * Converts the specified DB to an ICDB
@@ -317,10 +346,22 @@ public class ICDBTool {
         QueryVerifier verifier = dbConfig.granularity.getVerifier(icdb, dbConfig, threads, fetch, run);
 
         if (!icdbQuery.needsVerification()) {
-            if (execute) { verifier.execute(icdbQuery); }
+            if (execute) {
+                try {
+                    verifier.execute(icdbQuery);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         } else if (verifier.verify(icdbQuery)) {
             logger.info("Query verified");
-            if (execute) { verifier.execute(icdbQuery); }
+            if (execute) {
+                try {
+                    verifier.execute(icdbQuery);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         } else {
             logger.info(Format.limit(icdbQuery.getVerifyQuery()));
             logger.info("Query failed to verify");

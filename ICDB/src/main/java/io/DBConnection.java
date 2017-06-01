@@ -10,11 +10,15 @@ import org.jooq.impl.DSL;
 import org.jooq.util.derby.sys.Sys;
 
 import javax.naming.Reference;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * <p>
@@ -103,6 +107,8 @@ public class DBConnection {
                 tableName -> dbCreate.fetch("SHOW KEYS FROM`" + tableName + "`WHERE Key_name = 'PRIMARY'")
                     .map(result -> result.get(DSL.field("Column_name")).toString())
             ));
+
+
     }
 
     public Connection getConnection() {

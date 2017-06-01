@@ -45,7 +45,7 @@ class Statistics(private val metadata: StatisticsMetadata, private val outputFil
             // Output data
             csvWriter.write(listOf(
                 "run", "Query Fetch Size", "Query Conversion Time", "Data Fetch Time",
-                "Verification Time", "Execution Time", "Aggregate operation Time", "Aggregate Record(IC) Fetch Time", "Aggregate Sig Generation time", "AGG_finalVerificationtime(microsec)", "Total Data Size (Bytes)","Total Serial Size (Bytes)", "Total IC Size (Bytes)"
+                "Verification Time", "Execution Time", "Aggregate operation Time", "Aggregate Record(IC) Fetch Time", "Aggregate Sig Generation time", "AGG_finalVerificationtime(microsec)", "ICRL revoke time","Total Data Size (Bytes)","Total Serial Size (Bytes)", "Total IC Size (Bytes)"
             ))
             runs.forEach { csvWriter.write(it.list()) }
 

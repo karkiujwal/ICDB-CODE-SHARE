@@ -18,7 +18,9 @@ import org.apache.logging.log4j.Logger;
 import org.bouncycastle.jcajce.provider.digest.SHA3.DigestSHA3;
 import org.bouncycastle.jcajce.provider.digest.SHA3.Digest256;
 
-import java.io.File;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 
 import org.bouncycastle.util.encoders.Hex;
@@ -38,6 +40,8 @@ import java.util.concurrent.*;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static main.ICDBTool.ICRLmap;
 
 
 /**
@@ -229,7 +233,7 @@ public abstract class QueryVerifier {
         return verified;
     }
 
-    public void execute(ICDBQuery icdbQuery) {
+    public void execute(ICDBQuery icdbQuery) throws IOException {
 
 
         if (icdbQuery.isAggregateQuery) {
@@ -253,21 +257,53 @@ public abstract class QueryVerifier {
         }else{
 
             Stopwatch queryExecutionTime = Stopwatch.createStarted();
-
             icdbQuery.execute(icdbCreate);
-
             statistics.setExecutionTime(queryExecutionTime.elapsed(ICDBTool.TIME_UNIT));
             logger.debug("Total query execution time: {}", statistics.getExecutionTime());
 
-            // Add all pending serials
-            icrl.commit();
+            if (icdbQuery.isDeleteQuery || icdbQuery.requiresUpdate){
+                Writer writer = null;
+                Stopwatch icrlRevokeTime = Stopwatch.createStarted();
+                try {
+                    writer = new BufferedWriter(new OutputStreamWriter(
+                            new FileOutputStream("ICRL.txt",true), "utf-8"));
 
-            // Revoke all pending serials
-            if (!icdbQuery.serialsToBeRevoked.isEmpty()) {
-                icdbQuery.serialsToBeRevoked.forEach(serial -> icrl.revoke(serial));
+                    if (!icdbQuery.serialsToBeRevoked.isEmpty()) {
+
+                        for (Long serial:icdbQuery.serialsToBeRevoked
+                                ) {
+                            writer.write(serial.toString()+"\n");
+
+                        }
+                    }
+
+
+                } catch (IOException ex) {
+                    // report
+                } finally {
+                    try {writer.close();} catch (Exception ex) {/*ignore*/}
+                }
+                statistics.setIcrlRevoketime(icrlRevokeTime.elapsed(ICDBTool.TIME_UNIT));
+                logger.debug("ICRL revoke time: {}", statistics.getIcrlRevoketime());
+
+
+                ///update ICRLHASH for newly updated ICRL file (NOTE:TIME is not reported for background update of ICRLMAP)
+
+                for (Long serial:icdbQuery.serialsToBeRevoked
+                     ) {
+                    ICRLmap.putIfAbsent(String.valueOf(serial).hashCode(), serial);
+                }
+
                 icdbQuery.serialsToBeRevoked.clear();
+
+
             }
+
+
+
         }
+
+
 
 
     }
@@ -280,23 +316,7 @@ public abstract class QueryVerifier {
      */
     private boolean verifyRecords(Stream<Record> records, ICDBQuery icdbQuery) {
 
-        //backup optimizatio code (for adding attrname and table name to data value)
-//        if(userConfig.granularity== Granularity.FIELD){
-//
-//            Optional<Record> Optrecord=records.findFirst();
-//            //record.toString();
-//            List<String> tables=new ArrayList<>();
-//            List<String> attributeNames=new ArrayList<>();
-//            Record record= Optrecord.get();
-//            for (Field field:record.fields()) {
-//                System.out.println(field.toString());
-//                    tables.add(field.toString().split("\\.")[0].replace("\"", ""));
-//                    attributeNames.add(field.toString().split("\\.")[1].replace("\"", "").toLowerCase());
-//            }
-//            icdbQuery.tables=tables;
-//            icdbQuery.attributeNames=attributeNames;
-//
-//        }
+
         final ForkJoinPool threadPool = threads < 1 ? new ForkJoinPool() : new ForkJoinPool(threads);
 
         logger.debug("Using {} thread(s)", threadPool.getParallelism());
@@ -369,15 +389,30 @@ public abstract class QueryVerifier {
      * @param data the data to verify
      * @return true if the regenerated signature matches the original signature
      */
-    protected boolean verifyData(final long serial, final byte[] signature, final String data) {
+    protected boolean verifyData(final long serial, final byte[] signature, final String data)  {
         final byte[] serialBytes = ByteBuffer.allocate(8).putLong(serial).array();
         final byte[] dataBytes = data.getBytes(Charsets.UTF_8);
 
         final byte[] allBytes = ArrayUtils.addAll(dataBytes, serialBytes);
 
-        final boolean serialVerified = icrl.contains(serial);
+        //final boolean serialVerified = icrl.contains(serial);
+       // final boolean serialVerified = verifySerial(String.valueOf(serial));
         final boolean signatureVerified = codeGen.verify(allBytes, signature);
-        return serialVerified && signatureVerified;
+        return true && signatureVerified;
+    }
+
+
+
+    /**
+     * Checks for the serial number in ICRL file
+     * @param serial the serial number
+
+     * @return true if serial is found in the ICRL
+     */
+    protected boolean verifySerial(final String serial)  {
+        if(ICDBTool.ICRLmap.containsKey(serial.hashCode())){
+            return false;
+        }else return true;
     }
 
     /**

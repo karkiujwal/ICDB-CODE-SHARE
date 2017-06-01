@@ -227,7 +227,8 @@ public class OCTQuery extends ICDBQuery {
         selectList.add(new SelectExpressionItem(new HexValue("ic")));
 
         plainSelect.setWhere(delete.getWhere());
-
+        plainSelect.setLimit(delete.getLimit());
+        plainSelect.setOrderByElements(delete.getOrderByElements());
 
         // Convert query to a SELECT * to obtain all tuples
         plainSelect.setSelectItems(selectList);

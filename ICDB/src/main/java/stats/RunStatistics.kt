@@ -18,9 +18,11 @@ data class RunStatistics(
     var aggregateRecordFetchTime: Long = 0,
     var aggregateSigGenerationTime: Long = 0,
     var AGG_final_verificationTime: Long = 0,
+    var icrlRevoketime: Long = 0,
     var totalDataSize: Long = 0,
     var totalSerialSize: Long = 0,
     var totalICSize: Long = 0
+
 ) {
     fun list(): List<Long> = listOf(
         run,
@@ -33,6 +35,7 @@ data class RunStatistics(
             aggregateRecordFetchTime,
             aggregateSigGenerationTime,
             AGG_final_verificationTime,
+            icrlRevoketime,
             totalDataSize,
             totalSerialSize,
             totalICSize

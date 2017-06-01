@@ -80,7 +80,7 @@ public class OCTQueryVerifier extends QueryVerifier {
                 final long serial = (long) record.get(index + 1);
 
                  String data = builder.toString();
-                //concat table name to the end
+                //concat table name to the end (OLD)
 //                for (String table:tableList) {
 //                    data=data.concat(table.toLowerCase());
 //                }
@@ -97,7 +97,7 @@ public class OCTQueryVerifier extends QueryVerifier {
                     break;
                 }
 
-                //if delete query, add the serials to be revoked in the list
+              //  if delete query, add the serials to be revoked in the list
                 if (icdbQuery.isDeleteQuery)
                     icdbQuery.serialsToBeRevoked.add(serial);
 
@@ -110,7 +110,7 @@ public class OCTQueryVerifier extends QueryVerifier {
                     index += 2;
                 }
             }
-
+//(OLD)
 //        final StringBuilder builder = new StringBuilder();
 //
 //        for (int i = 0; i < record.size() - 2; i++) {
@@ -179,10 +179,14 @@ public class OCTQueryVerifier extends QueryVerifier {
                 data=data.concat(tableList.get(tableIndex).toLowerCase());
                 tableIndex++;
 
-                //check the ICRL
-                if (!icrl.contains(serial)) {
+                //check the ICRL(OLD)
+//                if (!icrl.contains(serial)) {
+//                    return false;
+//                }
+
+                //(NEW)
+                if(ICDBTool.ICRLmap.containsKey(String.valueOf(serial).hashCode()))
                     return false;
-                }
 
                 //generate aggregate message for RSA and regenerate signature for AES and SHA
                 if (codeGen.getAlgorithm()== AlgorithmType.RSA_AGGREGATE){
@@ -202,8 +206,7 @@ public class OCTQueryVerifier extends QueryVerifier {
                 //if delete query, add the serials to be revoked in the list
                 if (icdbQuery.isDeleteQuery)
                     icdbQuery.serialsToBeRevoked.add(serial);
-                builder.setLength(0);
-               // sig = sig.multiply(new BigInteger(signature)).mod(key.getModulus());
+//                builder.setLength(0);
 
                 //for join queries
                 if (record.size() == index + 1)

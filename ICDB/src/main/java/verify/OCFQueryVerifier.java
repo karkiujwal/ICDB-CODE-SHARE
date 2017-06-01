@@ -82,7 +82,7 @@ public class OCFQueryVerifier extends QueryVerifier {
                     data=data.concat(record.get(0).toString());
                 }
 
-//temporarily commented join QUERY, Primary keys concatenation
+            //temporarily commented join QUERY, Primary keys concatenation
                 /*
                 //check if the field index belongs to table[index]
                 if(tableFieldCount.get(tableindex)<fieldcount){
@@ -116,7 +116,7 @@ public class OCFQueryVerifier extends QueryVerifier {
 
             }else{
 
-                //temp exp
+                //temp exp (need RollBack)
                 /*
                 List<String>primaryKeysList=icdb.getPrimaryKeys(tableList.get(0));
                 //  Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
@@ -143,9 +143,9 @@ public class OCFQueryVerifier extends QueryVerifier {
 
             */
 
-        //temp exp
+            //temp exp
             /*
-            //optimized code (NEW)
+            //optimized code (NEW) (need RollBack)
             //attribute name
             data=data.concat(icdbQuery.attributeNames.get(i));
             //table name
@@ -166,10 +166,10 @@ public class OCFQueryVerifier extends QueryVerifier {
                 return false;
             }
 
-            //temp exp
+
             //if delete query, add the serials to be revoked in the list
-//            if (icdbQuery.isDeleteQuery)
-//                icdbQuery.serialsToBeRevoked.add(serial);
+            if (icdbQuery.isDeleteQuery)
+                icdbQuery.serialsToBeRevoked.add(serial);
 
             if (icdbQuery.isAggregateQuery && i==dataSize-1) {
                 Stopwatch aggregateOperationTime = Stopwatch.createStarted();
@@ -210,7 +210,7 @@ public class OCFQueryVerifier extends QueryVerifier {
             //concat the primary keys values
             if (icdbQuery.isJoinQuery){
 
-//for experimental purpose
+                //for experimental purpose
                 //execute-query -q "SELECT * FROM employees Join salaries on employees.emp_no=salaries.emp_no limit 50000;" --threads 1 --fetch EAGER
                 if (fieldcount - 1 > 5){
                     //salaries table
@@ -222,7 +222,7 @@ public class OCFQueryVerifier extends QueryVerifier {
                     data=data.concat(record.get(0).toString());
                 }
 
-///temp comment
+                ///temp comment(need RollBack)
                 /*
 
                //check if the field index belongs to table[index]
@@ -255,6 +255,7 @@ public class OCFQueryVerifier extends QueryVerifier {
 
 
             }else{
+                //(need RollBack)
 //                List<String>primaryKeysList=icdb.getPrimaryKeys(tableList.get(0));
 //                //  Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
 //                for (String primarykey:primaryKeysList) {
@@ -263,7 +264,7 @@ public class OCFQueryVerifier extends QueryVerifier {
             }
 
             /*
-            //concat attribute name
+            //concat attribute name (OLD)
             data=data.concat(record.field(i).toString().split("\\.")[1].replace("\"", "").toLowerCase());
 
             //concat table name to the end
@@ -278,16 +279,20 @@ public class OCFQueryVerifier extends QueryVerifier {
 
             */
 
-//            //optimized code
+//            //optimized code(need RollBack)
 //            //attribute name
 //            data=data.concat(icdbQuery.attributeNames.get(i));
 //            //table name
 //            data=data.concat(icdbQuery.attributetables.get(i));
 
-            //check the ICRL
-            if (!icrl.contains(serial)) {
+            //check the ICRL (OLD)
+//            if (!icrl.contains(serial)) {
+//                return false;
+//            }
+
+            //(NEW)
+            if(ICDBTool.ICRLmap.containsKey(String.valueOf(serial).hashCode()))
                 return false;
-            }
 
 
             //generate aggregate message for RSA and regenerate signature for AES and SHA
@@ -309,9 +314,9 @@ public class OCFQueryVerifier extends QueryVerifier {
                 sigBuilderClient.append(Hex.toHexString(regenerateSignature(serial,data)));
             }
 
-            //if delete query, add the serials to be revoked in the list
-//            if (icdbQuery.isDeleteQuery)
-//                icdbQuery.serialsToBeRevoked.add(serial);
+          //  if delete query, add the serials to be revoked in the list
+            if (icdbQuery.isDeleteQuery)
+                icdbQuery.serialsToBeRevoked.add(serial);
 
             if (icdbQuery.isAggregateQuery && i==dataSize-1) {
                 Stopwatch aggregateOperationTime = Stopwatch.createStarted();
