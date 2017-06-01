@@ -258,6 +258,15 @@ public abstract class QueryVerifier {
 
             statistics.setExecutionTime(queryExecutionTime.elapsed(ICDBTool.TIME_UNIT));
             logger.debug("Total query execution time: {}", statistics.getExecutionTime());
+
+            // Add all pending serials
+            icrl.commit();
+
+            // Revoke all pending serials
+            if (!icdbQuery.serialsToBeRevoked.isEmpty()) {
+                icdbQuery.serialsToBeRevoked.forEach(serial -> icrl.revoke(serial));
+                icdbQuery.serialsToBeRevoked.clear();
+            }
         }
 
 

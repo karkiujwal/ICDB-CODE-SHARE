@@ -165,14 +165,14 @@ public abstract class ICDBQuery {
         String result = icdbCreate.fetch(convertedQuery).toString();
         logger.info("{}\n{}", Format.limit(convertedQuery), result);
 
-        // Add all pending serials
-        icrl.commit();
-
-        // Revoke all pending serials
-        if (!serialsToBeRevoked.isEmpty()) {
-            serialsToBeRevoked.forEach(serial -> icrl.revoke(serial));
-            serialsToBeRevoked.clear();
-        }
+//        // Add all pending serials
+//        icrl.commit();
+//
+//        // Revoke all pending serials
+//        if (!serialsToBeRevoked.isEmpty()) {
+//            serialsToBeRevoked.forEach(serial -> icrl.revoke(serial));
+//            serialsToBeRevoked.clear();
+//        }
     }
 
     /**

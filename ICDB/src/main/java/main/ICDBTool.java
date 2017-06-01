@@ -44,6 +44,7 @@ import stats.RunStatistics;
 import stats.Statistics;
 import stats.StatisticsMetadata;
 import verify.QueryVerifier;
+import verify.serial.AbstractIcrl;
 import verify.serial.Icrl;
 
 import static org.bouncycastle.crypto.tls.TlsECCUtils.isCompressionPreferred;
@@ -63,6 +64,8 @@ public class ICDBTool {
     public static final TimeUnit TIME_UNIT = TimeUnit.MILLISECONDS;
 
 	private static final Logger logger = LogManager.getLogger();
+
+    protected AbstractIcrl icrl = Icrl.Companion.getIcrl();
 
 	public static void main(String[] args) throws FileNotFoundException {
 
@@ -336,6 +339,7 @@ public class ICDBTool {
         Stopwatch executeTime = Stopwatch.createStarted();
         icdb.getCreate().execute(query);
         run.setExecutionTime(executeTime.elapsed(TIME_UNIT));
+
 
         logger.info("Execution time: {}", run.getExecutionTime());
     }
