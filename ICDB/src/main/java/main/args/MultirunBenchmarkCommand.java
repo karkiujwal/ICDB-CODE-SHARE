@@ -27,4 +27,7 @@ public class MultirunBenchmarkCommand extends ConfigCommand {
     @Parameter(names = { "-t", "--threads" }, description = "The number of worker threads for verification. An argument of 0 will use the JVM default configuration, which usually results in the best parallel performance. (Default: 0)")
     public Integer threads = 0;
 
+    @Parameter(names = { "-i", "--insert" }, description = "Execute a query as an argument")
+    public Boolean insert = false;
+
 }

@@ -215,16 +215,35 @@ public class ICDBTool {
         );
         Statistics statistics = new Statistics(metadata, new File("./src/main/resources/statistics/data.csv"));
 
-
-        for(int i=0; i<5; i++){
+        //read the insert queries from the file and write to an datastructure to execute in a loop
+        //also track the conversio and execution time
+        if(executemultirunQueryCommand.insert){
             RunStatistics run = new RunStatistics();
-            run.setRun(i+1);
+            run.setRun(1);
             statistics.addRun(run);
 
-            executeQueryRun(
-                    executemultirunQueryCommand.query, executemultirunQueryCommand.fetch, executemultirunQueryCommand.threads, dbConfig, run, true
-            );
+            try (Stream<String> stream = Files.lines(Paths.get("salaries-table-50000.txt"))) {
+                stream.forEach(line -> executeQueryRun(
+                        line, executemultirunQueryCommand.fetch, executemultirunQueryCommand.threads, dbConfig, run, true
+                ));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }else{
+            for(int i=0; i<5; i++){
+                RunStatistics run = new RunStatistics();
+                run.setRun(i+1);
+                statistics.addRun(run);
+
+                executeQueryRun(
+                        executemultirunQueryCommand.query, executemultirunQueryCommand.fetch, executemultirunQueryCommand.threads, dbConfig, run, true
+                );
+            }
         }
+
+
+
 
 
 
