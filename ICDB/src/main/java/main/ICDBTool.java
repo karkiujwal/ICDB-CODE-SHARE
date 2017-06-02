@@ -224,9 +224,10 @@ public class ICDBTool {
                 statistics.addRun(run);
 
 
-                //read the insert queries from the file and write to an datastructure to execute in a loop
-                //also track the conversio and execution time
+
                 if(executemultirunQueryCommand.insert){
+                    //read the insert queries from the file and write to an datastructure to execute in a loop
+                    //also track the conversio and execution time
                     StringBuilder builder = new StringBuilder();
                     try (Stream<String> stream = Files.lines(Paths.get(executemultirunQueryCommand.insertfile))) {
                         stream.forEach(line -> builder.append(line));
@@ -239,7 +240,21 @@ public class ICDBTool {
                         e.printStackTrace();
                     }
 
-                }else {
+                }else if(executemultirunQueryCommand.dbDelete){
+
+                    //run delete query on the standard/original MySQL database
+                    DBConnection DB = DBConnection.connect(dbConfig.schema, dbConfig);
+
+                    Stopwatch queryExecutionTime = Stopwatch.createStarted();
+                    DB.getCreate().execute(executemultirunQueryCommand.query);
+                    run.setExecutionTime(queryExecutionTime.elapsed(ICDBTool.TIME_UNIT));
+                    logger.debug("Total query execution time: {}", run.getExecutionTime());
+
+
+
+
+                }
+                else {
 
                     executeQueryRun(
                             executemultirunQueryCommand.query, executemultirunQueryCommand.fetch, executemultirunQueryCommand.threads, dbConfig, run, true, icdb

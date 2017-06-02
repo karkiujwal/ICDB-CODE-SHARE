@@ -33,4 +33,8 @@ public class MultirunBenchmarkCommand extends ConfigCommand {
     @Parameter(names = { "-file", "--file" }, description = "Get path for insert query file")
     public String insertfile;
 
+    @Parameter(names = { "-db", "--dbdelete" }, description = "request for delete from original DB")
+    public Boolean dbDelete = false;
+
+
 }
