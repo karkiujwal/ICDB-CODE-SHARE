@@ -217,34 +217,36 @@ public class ICDBTool {
         );
         Statistics statistics = new Statistics(metadata, new File("./src/main/resources/statistics/data.csv"));
 
-        //read the insert queries from the file and write to an datastructure to execute in a loop
-        //also track the conversio and execution time
-        if(executemultirunQueryCommand.insert){
-            RunStatistics run = new RunStatistics();
-            run.setRun(1);
-            statistics.addRun(run);
-            StringBuilder builder = new StringBuilder();
-            try (Stream<String> stream = Files.lines(Paths.get(executemultirunQueryCommand.insertfile))) {
-                stream.forEach(line -> builder.append(line));
-                executeQueryRun(
-                        builder.toString(), executemultirunQueryCommand.fetch, executemultirunQueryCommand.threads, dbConfig, run, true,icdb
-                );
 
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-        }else{
             for(int i=0; i<5; i++){
                 RunStatistics run = new RunStatistics();
                 run.setRun(i+1);
                 statistics.addRun(run);
 
-                executeQueryRun(
-                        executemultirunQueryCommand.query, executemultirunQueryCommand.fetch, executemultirunQueryCommand.threads, dbConfig, run, true,icdb
-                );
+
+                //read the insert queries from the file and write to an datastructure to execute in a loop
+                //also track the conversio and execution time
+                if(executemultirunQueryCommand.insert){
+                    StringBuilder builder = new StringBuilder();
+                    try (Stream<String> stream = Files.lines(Paths.get(executemultirunQueryCommand.insertfile))) {
+                        stream.forEach(line -> builder.append(line));
+                        executeQueryRun(
+                                builder.toString(), executemultirunQueryCommand.fetch, executemultirunQueryCommand.threads, dbConfig, run, true,icdb
+                        );
+                        icdb.getCreate().execute("Truncate table salaries;");
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                }else {
+
+                    executeQueryRun(
+                            executemultirunQueryCommand.query, executemultirunQueryCommand.fetch, executemultirunQueryCommand.threads, dbConfig, run, true, icdb
+                    );
+                }
             }
-        }
+
 
         statistics.outputRuns();
     }
