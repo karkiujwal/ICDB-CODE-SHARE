@@ -184,6 +184,7 @@ public class ICDBTool {
      * Executes a query
      */
     private static void executeQuery(CommandLineArgs cmd, UserConfig dbConfig) {
+        DBConnection icdb = DBConnection.connect(dbConfig.icdbSchema, dbConfig);
         final ExecuteQueryCommand executeQueryCommand = cmd.executeQueryCommand;
 
         StatisticsMetadata metadata = new StatisticsMetadata(
@@ -197,7 +198,7 @@ public class ICDBTool {
 
         executeQueryRun(
             executeQueryCommand.query, executeQueryCommand.fetch, executeQueryCommand.threads, dbConfig, run, true
-        );
+        ,icdb);
 
         statistics.outputRuns();
     }
@@ -207,6 +208,7 @@ public class ICDBTool {
      * Executes a query for 5 runs
      */
     private static void executeQuerybenchmark(CommandLineArgs cmd, UserConfig dbConfig) {
+        DBConnection icdb = DBConnection.connect(dbConfig.icdbSchema, dbConfig);
         final MultirunBenchmarkCommand executemultirunQueryCommand = cmd.multirunbenchmarkCommand;
 
         StatisticsMetadata metadata = new StatisticsMetadata(
@@ -221,11 +223,13 @@ public class ICDBTool {
             RunStatistics run = new RunStatistics();
             run.setRun(1);
             statistics.addRun(run);
+            StringBuilder builder = new StringBuilder();
+            try (Stream<String> stream = Files.lines(Paths.get(executemultirunQueryCommand.insertfile))) {
+                stream.forEach(line -> builder.append(line));
+                executeQueryRun(
+                        builder.toString(), executemultirunQueryCommand.fetch, executemultirunQueryCommand.threads, dbConfig, run, true,icdb
+                );
 
-            try (Stream<String> stream = Files.lines(Paths.get("salaries-table-50000.txt"))) {
-                stream.forEach(line -> executeQueryRun(
-                        line, executemultirunQueryCommand.fetch, executemultirunQueryCommand.threads, dbConfig, run, true
-                ));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -237,15 +241,10 @@ public class ICDBTool {
                 statistics.addRun(run);
 
                 executeQueryRun(
-                        executemultirunQueryCommand.query, executemultirunQueryCommand.fetch, executemultirunQueryCommand.threads, dbConfig, run, true
+                        executemultirunQueryCommand.query, executemultirunQueryCommand.fetch, executemultirunQueryCommand.threads, dbConfig, run, true,icdb
                 );
             }
         }
-
-
-
-
-
 
         statistics.outputRuns();
     }
@@ -255,6 +254,7 @@ public class ICDBTool {
      * Note: VERY hacky (I was so frustrated I wanted it to work)
      */
     private static void benchmark(CommandLineArgs cmd, UserConfig dbConfig) {
+        DBConnection icdb = DBConnection.connect(dbConfig.icdbSchema, dbConfig);
         final BenchmarkCommand benchmarkCommand = cmd.benchmarkCommand;
         final String dbSchema = benchmarkCommand.schemaName != null ? benchmarkCommand.schemaName : dbConfig.icdbSchema;
 
@@ -333,9 +333,9 @@ public class ICDBTool {
                     executeBaselineRun(selectQueries.get(i), dbConfig, selectRun);
                     executeBaselineRun(deleteQueries.get(i), dbConfig, deleteRun);
                 } else {
-                    executeQueryRun(insertQueries.get(i), benchmarkCommand.fetch, benchmarkCommand.threads, dbConfig, insertRun, true);
-                    executeQueryRun(selectQueries.get(i), benchmarkCommand.fetch, benchmarkCommand.threads, dbConfig, selectRun, true);
-                    executeQueryRun(deleteQueries.get(i), benchmarkCommand.fetch, benchmarkCommand.threads, dbConfig, deleteRun, true);
+                    executeQueryRun(insertQueries.get(i), benchmarkCommand.fetch, benchmarkCommand.threads, dbConfig, insertRun, true,icdb);
+                    executeQueryRun(selectQueries.get(i), benchmarkCommand.fetch, benchmarkCommand.threads, dbConfig, selectRun, true,icdb);
+                    executeQueryRun(deleteQueries.get(i), benchmarkCommand.fetch, benchmarkCommand.threads, dbConfig, deleteRun, true,icdb);
                 }
 
                 logger.debug("Run time: {}", executionTime.elapsed(ICDBTool.TIME_UNIT));
@@ -356,8 +356,8 @@ public class ICDBTool {
     /**
      * Executes a query
      */
-    private static void executeQueryRun(String query, DataSource.Fetch fetch, int threads, UserConfig dbConfig, RunStatistics run, boolean execute) {
-        DBConnection icdb = DBConnection.connect(dbConfig.icdbSchema, dbConfig);
+    private static void executeQueryRun(String query, DataSource.Fetch fetch, int threads, UserConfig dbConfig, RunStatistics run, boolean execute,DBConnection icdb) {
+
         ICDBQuery icdbQuery = dbConfig.granularity.getQuery(query, icdb, dbConfig.codeGen, run);
 
         logger.info("Original Query: {}", Format.limit(query));
