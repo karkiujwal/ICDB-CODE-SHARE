@@ -1,1 +1,0 @@
-INSERT into departments VALUES('d026','tstss')

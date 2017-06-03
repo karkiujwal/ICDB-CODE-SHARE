@@ -142,6 +142,25 @@ public class ICDBTool {
 	 * Converts the specified DB to an ICDB
 	 */
 	private static void convertDB(CommandLineArgs cmd, UserConfig dbConfig) {
+	    //delete the ICRL FILE if exists for the new database!
+
+        try{
+
+            File file = new File("ICRL.txt");
+
+            if(file.delete()){
+                System.out.println(file.getName() + " is deleted!");
+            }else{
+                System.out.println("Delete operation is failed.");
+            }
+
+        }catch(Exception e){
+
+            e.printStackTrace();
+
+        }
+
+
 		final ConvertDBCommand convertConfig = cmd.convertDBCommand;
 
 		// Duplicate the DB, and add additional columns
