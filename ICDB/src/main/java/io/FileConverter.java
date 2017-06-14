@@ -123,7 +123,7 @@ public class FileConverter {
 			int attrIndex=0;
             for (String field : line) {
 
-            	/*
+
             	field=field.concat(delimeter);
             	//need to concat with primary key and table name
 				for (Integer index:primarykeyindexes) {
@@ -137,7 +137,7 @@ public class FileConverter {
 
 				//concat table name
 				field=field.concat(table[0]);
-				*/
+
 
                 final byte[] dataBytes = field.getBytes(Charsets.UTF_8);
                 convertLine(collector, dataBytes, codeGen, icrl);

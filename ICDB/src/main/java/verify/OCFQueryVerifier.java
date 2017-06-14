@@ -66,24 +66,25 @@ public class OCFQueryVerifier extends QueryVerifier {
             final long serial = (long) record.get(dataSize + 2 * i + 1);
             final byte[] signature = (byte[]) record.get(dataSize + 2 * i);
              String data = record.get(i).toString();
-          ///////////  data=data.concat(delimeter);
+            data=data.concat(delimeter);
             //concat the primary keys values
             if (icdbQuery.isJoinQuery) {
 
                 //for experimental purpose
                 //execute-query -q "SELECT * FROM employees Join salaries on employees.emp_no=salaries.emp_no limit 50000;" --threads 1 --fetch EAGER
+/*
                 if (fieldcount - 1 > 5){
                     //salaries table
                     data = data.concat(record.get(6).toString());
-                data = data.concat(record.get(8).toString());
+                    data = data.concat(record.get(8).toString());
                 }
                 else{
                     //employees table
                     data=data.concat(record.get(0).toString());
                 }
+                */
 
-            //temporarily commented join QUERY, Primary keys concatenation
-                /*
+
                 //check if the field index belongs to table[index]
                 if(tableFieldCount.get(tableindex)<fieldcount){
                     tableindex++;
@@ -92,38 +93,36 @@ public class OCFQueryVerifier extends QueryVerifier {
 
 
                 //temp block
-                ////Field<?>[] fields=record.fields();
+                Field<?>[] fields=record.fields();
 
                 List<String>primaryKeysList=icdb.getPrimaryKeys(tableList.get(tableindex));
                 //  Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
                 for (String primarykey:primaryKeysList) {
-                    /////temp block for experiment!!!!
-//                    int indexPK=0;
-//                    //loop around fields[] to get the index in record for the Primary Key [little bit of a hack here!!]
-//                    for (int j=0;j<fields.length;j++) {
-//                        if(fields[j].toString().equalsIgnoreCase(("\""+tableList.get(tableindex)+"\".\""+primarykey+"\"")))                        {
-//                            indexPK=j;
-//                            break;
-//                        }
-//                    }
-//                    data=data.concat(record.get(indexPK).toString());
+                    int indexPK=0;
+                    //loop around fields[] to get the index in record for the Primary Key [little bit of a hack here!!]
+                    for (int j=0;j<fields.length;j++) {
+                        if(fields[j].toString().equalsIgnoreCase(("\""+tableList.get(tableindex)+"\".\""+primarykey+"\"")))                        {
+                            indexPK=j;
+                            break;
+                        }
+                    }
+                    data=data.concat(record.get(indexPK).toString());
 
 
 
                 }
-                */
+
 
 
             }else{
 
-                //temp exp (need RollBack)
-                /*
+
                 List<String>primaryKeysList=icdb.getPrimaryKeys(tableList.get(0));
                 //  Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
                 for (String primarykey:primaryKeysList) {
                     data=data.concat(record.get(primarykey).toString());
                 }
-                */
+
             }
 
             /*
@@ -143,15 +142,14 @@ public class OCFQueryVerifier extends QueryVerifier {
 
             */
 
-            //temp exp
-            /*
-            //optimized code (NEW) (need RollBack)
+
+            //optimized code (NEW)
             //attribute name
             data=data.concat(icdbQuery.attributeNames.get(i));
             //table name
             data=data.concat(icdbQuery.attributetables.get(i));
 
-            */
+
 
             final boolean verified = verifyData(serial, signature, data);
 
@@ -205,25 +203,12 @@ public class OCFQueryVerifier extends QueryVerifier {
           //  final byte[] signature = (byte[]) record.get(dataSize + 2 * i);
              String data = record.get(i).toString();
             totalDataSize+=data.getBytes().length;
-           ////// data=data.concat(delimeter);
+            data=data.concat(delimeter);
 
             //concat the primary keys values
             if (icdbQuery.isJoinQuery){
 
-                //for experimental purpose
-                //execute-query -q "SELECT * FROM employees Join salaries on employees.emp_no=salaries.emp_no limit 50000;" --threads 1 --fetch EAGER
-                if (fieldcount - 1 > 5){
-                    //salaries table
-                    data = data.concat(record.get(6).toString());
-                    data = data.concat(record.get(8).toString());
-                }
-                else{
-                    //employees table
-                    data=data.concat(record.get(0).toString());
-                }
 
-                ///temp comment(need RollBack)
-                /*
 
                //check if the field index belongs to table[index]
                 if(tableFieldCount.get(tableindex)<fieldcount){
@@ -237,7 +222,6 @@ public class OCFQueryVerifier extends QueryVerifier {
                 //  Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
                 for (String primarykey:primaryKeysList) {
 
-                   ////temp block!!!!
                     int indexPK=0;
                     //loop around fields[] to get the index in record for the Primary Key [little bit of a hack here!!]
                     for (int j=0;j<fields.length;j++) {
@@ -251,16 +235,15 @@ public class OCFQueryVerifier extends QueryVerifier {
 
                 }
 
-                */
+
 
 
             }else{
-                //(need RollBack)
-//                List<String>primaryKeysList=icdb.getPrimaryKeys(tableList.get(0));
-//                //  Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
-//                for (String primarykey:primaryKeysList) {
-//                    data=data.concat(record.get(primarykey).toString());
-//                }
+                List<String>primaryKeysList=icdb.getPrimaryKeys(tableList.get(0));
+                //  Collections.sort(primaryKeysList, String.CASE_INSENSITIVE_ORDER);
+                for (String primarykey:primaryKeysList) {
+                    data=data.concat(record.get(primarykey).toString());
+                }
             }
 
             /*
@@ -279,13 +262,12 @@ public class OCFQueryVerifier extends QueryVerifier {
 
             */
 
-//            //optimized code(need RollBack)
-//            //attribute name
-//            data=data.concat(icdbQuery.attributeNames.get(i));
-//            //table name
-//            data=data.concat(icdbQuery.attributetables.get(i));
+            //attribute name
+            data=data.concat(icdbQuery.attributeNames.get(i));
+            //table name
+            data=data.concat(icdbQuery.attributetables.get(i));
 
-            //check the ICRL (OLD)
+//           // check the ICRL (OLD)
 //            if (!icrl.contains(serial)) {
 //                return false;
 //            }

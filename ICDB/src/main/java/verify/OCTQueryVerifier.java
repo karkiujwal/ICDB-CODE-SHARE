@@ -206,7 +206,7 @@ public class OCTQueryVerifier extends QueryVerifier {
                 //if delete query, add the serials to be revoked in the list
                 if (icdbQuery.isDeleteQuery)
                     icdbQuery.serialsToBeRevoked.add(serial);
-//                builder.setLength(0);
+                builder.setLength(0);
 
                 //for join queries
                 if (record.size() == index + 1)
