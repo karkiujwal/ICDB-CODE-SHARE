@@ -46,10 +46,10 @@ import static main.ICDBTool.ICRLmap;
 
 /**
  * <p>
- *     Verifies a SQL query
+ *     Verifies a SQL query by using the respective ICDB query/queries based on the ICDB-mode and granularity used.
+ *     This clas also implements methods to generate aggregate message and aggregate integrity code required in ICDB- aggregate mode.
+ *     Different methods required to locally compute the aggregate functions as SUM,MIN,MAX,COUNT are aslo included in this calss
  * </p>
- * Created 5/8/2016
- * @author Dan Kondratyuk
  */
 public abstract class QueryVerifier {
 

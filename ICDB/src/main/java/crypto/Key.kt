@@ -26,7 +26,7 @@ import java.util.*
  * Wraps RSA and MAC keys for easy access
  *
  * Created on 7/13/2016
- * @author Dan Kondratyuk
+ *
  */
 class Key(macKey: String, rsaKeyFile: String) {
 

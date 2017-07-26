@@ -35,6 +35,10 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * <p>
  *      Represents an ICDB query. Encapsulates the converted query, plus a select query for verification.
+ *      The standard SEL query is converted to ICDB query by this class. Each SQL query may have ICDB converted query and/or ICDB verification query.
+ *      ICDB converted query is the query that is run on ICDB database after verification.
+ *      ICDB verification query is the query required to verify the result of standard SQL query.
+ *      Implements the library JSQLparser
  * </p>
  * Created on 7/16/2016
  *

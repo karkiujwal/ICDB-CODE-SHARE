@@ -32,7 +32,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 
 /**
- * Executes an OCT query and verifies data integrity.
+ * Executes an ICDB-OCT query and verifies data integrity.
  *
  * Created on 7/16/2016
  * @author Dan Kondratyuk

@@ -31,9 +31,8 @@ import java.util.stream.Collectors;
 
 /**
  * Parses Field Queries
- *
- * Created on 7/18/2016
- * @author Dan Kondratyuk
+ * Converts the standard SQL query to ICDB-OCF query (for ICDB-basic mode) or ICDB-OCF queries for (ICDB-Aggregate mode)
+ * ICDB-AM-OCF queries include Query targeted to CDS to fetch data plus serials and Query targetted to ICDB-cloud application for AIC generation.
  */
 public class OCFQuery extends ICDBQuery {
     private boolean skipFilter=false;

@@ -12,11 +12,7 @@ import main.args.config.ConfigArgs;
 import main.args.option.ReaderConverter;
 
 /**
- * <p>
- * </p>
- * Created on 5/10/2016
- *
- * @author Dan Kondratyuk
+ * A class to create an instance of dirrent types of command as convertion of query, execution of query, benchmarking, conversion of database
  */
 public class CommandLineArgs {
 

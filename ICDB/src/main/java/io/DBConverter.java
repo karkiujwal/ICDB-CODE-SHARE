@@ -26,11 +26,8 @@ import java.util.stream.Collectors;
 /**
  * <p>
  *      A DBConverter exports data to a file from an existing database, converts it to an icdb-compliant data file (by
- *      generating signatures in the appropriate columns), and loads the data into a new icdb.
+ *      generating signatures in the appropriate columns), and loads the data into a new icdb database.
  * </p>
- * Created 5/8/2016
- *
- * @author Dan Kondratyuk
  */
 public class DBConverter {
 

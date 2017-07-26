@@ -20,10 +20,10 @@ import main.args.option.Granularity;
 /**
  * <p>
  * Converts a given DB schema to an ICDB using a JDBC connection
+ * For OCF, each field has corresponding IC and serial fields
+ * For OCT, each table has its IC and serial field
+ * If the schema is already converted, the schema conversion is skipped.
  * </p>
- * Created on 6/3/2016
- *
- * @author Dan Kondratyuk
  */
 public class SchemaConverter {
 

@@ -10,8 +10,9 @@ import main.args.config.UserConfig
 /**
  * Enumerates all supported algorithm types, with extension methods to generate and verify signatures using its
  * corresponding algorithm implementation.
- *
- * Created on 5/21/2016
+ * Need to pass the data and key for signature generation
+ * Verification method needs signature, key and the data
+ * Implements signature generation and verification in both the ICDB-basic mode and ICDB-aggregate mode.
  *
  */
 enum class AlgorithmType {

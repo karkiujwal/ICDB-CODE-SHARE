@@ -8,9 +8,7 @@ import verify.serial.Icrl;
 import java.nio.ByteBuffer;
 
 /**
- * Created on 7/19/2016
- *
- * @author Dan Kondratyuk
+ * Generates IC and Serial for the data to be protected.
  */
 public class DataConverter {
 
@@ -18,7 +16,7 @@ public class DataConverter {
     private final byte[] signature;
 
     /**
-     * Given some data, this method generates codes (svc + serial) from it
+     * Given some data, this method generates codes (IC + serial) from it
      */
     public DataConverter(byte[] data, CodeGen codeGen, AbstractIcrl icrl) {
         serial = icrl.addNext();

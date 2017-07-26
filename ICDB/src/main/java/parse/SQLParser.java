@@ -11,6 +11,7 @@ import net.sf.jsqlparser.JSQLParserException;
 
 /**
  * @author ujwal-signature
+ * This is an additonal test class and is not used for any experimental purpose.
  *
  */
 public class SQLParser {

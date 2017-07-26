@@ -9,6 +9,8 @@ import java.nio.file.Files
 import java.util.concurrent.atomic.AtomicLong
 
 /**
+ * The classes in the folder 'serial' are not used for the experimental results. These were initially used and then discarded with the new implementation.
+ * The new implementation uses file system alogn with Hash-map for runtime operation
  * Maintains the Integrity Code Revocation List (ICRL), storing and loading it from a file.
 
  * Created 5/8/2016

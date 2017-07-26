@@ -53,10 +53,11 @@ import static org.junit.Assert.fail;
 /**
  * <p>
  * A tool for performing ICDB-related tasks.
+ * This class includes method to convert database, convert the query, execute the query, run the benchmark
+ * Based on the type of commandline argument, the particular method is called.
+ * This is the main class for the project
  * </p>
- * Created on 5/10/2016
  *
- * @author Dan Kondratyuk
  */
 public class ICDBTool {
 

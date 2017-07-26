@@ -10,6 +10,9 @@ import java.util.Arrays;
 
 /**
  * Created by ujwal-mac on 9/15/16.
+ * The data to be protected is initially hashed (to reduce the data size) and then signed using RSA
+ * computeSHA1RSA is the method to generate signature.
+ *
  */
 public class RSASHA1Signer {
     private BigInteger modulus;

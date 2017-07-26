@@ -2,9 +2,9 @@ package crypto
 
 /**
  * A wrapper class containing a key and an algorithm to generate a signature from a message
+ * This class has methods to generate signature for the data to be protected and a method to verify the signature.
  *
- * Created on 6/29/2016
- * @author Dan Kondratyuk
+ *
  */
 class CodeGen(var algorithm: AlgorithmType, private val key: Key, private val ecparam: ECParams) {
 

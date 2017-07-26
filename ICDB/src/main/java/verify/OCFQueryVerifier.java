@@ -33,7 +33,7 @@ import static org.jooq.impl.DSL.table;
 
 /**
  * <p>
- *      Executes an OCF query and verifies data integrity
+ *      Executes an ICDB-OCF query and verifies data integrity
  * </p>
  * Created on 7/16/2016
  *

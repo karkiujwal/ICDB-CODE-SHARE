@@ -12,9 +12,6 @@ import org.apache.logging.log4j.Logger;
  * <p>
  *      Global user configuration parameters
  * </p>
- * Created on 7/13/2016
- *
- * @author Dan Kondratyuk
  */
 public class UserConfig {
 

@@ -16,9 +16,8 @@ import verify.QueryVerifier;
 
 /**
  * ICDB Granularity is configured for one code per tuple (OCT) or one code per field (OCF)
+ * The granularity is useful in query conversion as well as data conversion and signature verification
  *
- * Created on 5/21/2016
- * @author Dan Kondratyuk
  */
 public enum Granularity {
     TUPLE {

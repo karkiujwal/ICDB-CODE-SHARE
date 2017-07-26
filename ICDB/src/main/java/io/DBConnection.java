@@ -21,11 +21,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * <p>
- * </p>
- * Created on 6/3/2016
- *
- * @author Dan Kondratyuk
+ * A class for database connection, access and management.
+ * Implements methods to get various information of the database as table names, primary keys, fields, all implemented using JOOQ library.
  */
 public class DBConnection {
 

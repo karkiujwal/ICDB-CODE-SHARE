@@ -19,6 +19,8 @@ import java.util.HashMap;
 
 /**
  * Created by ujwal-mac on 11/30/16.
+ * This class was created to test ELgamal algorithm.
+ * The experimental result make no use of this class. This is an additional class.
  */
 public class ECParams {
     public ECCurve.Fp curve;

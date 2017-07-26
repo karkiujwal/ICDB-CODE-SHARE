@@ -5,9 +5,8 @@ import main.args.option.Granularity;
 
 /**
  * Represents a configuration file
+ * All the information included in config.json file is used in this class attributes.
  *
- * Created on 6/8/2016
- * @author Dan Kondratyuk
  */
 public class ConfigArgs {
     public String ip;

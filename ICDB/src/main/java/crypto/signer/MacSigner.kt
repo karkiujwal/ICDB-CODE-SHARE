@@ -14,8 +14,7 @@ import java.util.*
 
 /**
  * A Message Authentication Code (MAC) is a fast way to generate a signature designed to detect code tampering.
- * Created on 7/22/2016
- * @author Dan Kondratyuk
+ * Two MAC algorithms are used: HMAC and CMAC
  */
 object MacSigner {
 

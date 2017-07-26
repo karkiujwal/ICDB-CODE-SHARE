@@ -25,6 +25,7 @@ import static org.junit.Assert.fail;
 
 /**
  * Created by ujwal-mac on 11/30/16.
+ * This is an optional class to test for the El-gamal signature generation and is not used for any experimental results in the research
  */
 public class ECSigner {
     ECParams params;

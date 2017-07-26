@@ -29,10 +29,10 @@ import java.util.stream.Collectors;
 
 /**
  * Parses Tuple Queries
- *
- * Created on 7/18/2016
- * @author Dan Kondratyuk
+ * Converts the standard SQL query to ICDB-OCT query (for ICDB-basic mode) or ICDB-OCT queries for (ICDB-Aggregate mode)
+ * ICDB-AM-OCT queries include Query targeted to CDS to fetch data plus serials and Query targetted to ICDB-cloud application for AIC generation.
  */
+
 public class OCTQuery extends ICDBQuery {
 
     public OCTQuery(String query, DBConnection icdb, CodeGen codeGen, RunStatistics statistics) {
