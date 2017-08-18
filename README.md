@@ -130,6 +130,7 @@ The result data/experimental statistics for each run are written to a csv file l
 /ICDB/src/main/resources/statistics
 
 ## Statistics
+```
 Query Fetch Size -> number of tuples fetched
 Query Conversion Time -> time to convert the SQL query to ICDB query
 Data Fetch Time -> Time to fetch the required data by ICDB
@@ -142,6 +143,7 @@ ICRL revoke time -> Time required to revoke serials for deleted/updated data
 Total Data Size (Bytes) -> Size of data targetted by SQL query
 Total Serial Size (Bytes) -> Corresponding serials of the data targetted by SQL query
 Total IC Size (Bytes) -> Corresponding ICs of the data targetted by SQL query
+```
 
 ## Troubleshooting
 
