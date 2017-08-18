@@ -11,7 +11,7 @@ To be able to build and run against a database, the following must be installed:
 
 Then run the following commands to build the project:
 ```
-$ git clone https://github.com/Hyperparticle/IntegrityCodedDatabase.git
+$ git clone https://github.com/ujjwalkarki/ICDB-CODE-SHARE.git
 $ cd IntegrityCodedDatabase/ICDB
 $ make
 ```
@@ -90,7 +90,7 @@ The `convert-db` command has 4 phases, any of which can be skipped:
 Example:
 ```
 $ cd <project-root>/ICDB
-$ ICDBTool -c ./src/main/resources/config-sample.json convert-db --skip-duplicate
+$ icdb -c ./src/main/resources/config-sample.json convert-db --skip-duplicate
 ```
 
 ### Convert Query Command
@@ -106,7 +106,7 @@ The `convert-query` command takes the SQL query as an input and converts it to a
 Example:
 ```
 $ cd <project-root>/ICDB
-$ ICDBTool -c ./src/main/resources/config-sample.json convert-query -q "SELECT * FROM employees;" -g "FIELD"
+$ icdb -c ./src/main/resources/config-sample.json convert-query -q "SELECT * FROM employees;" -g "FIELD"
 ```
 
 ### Execute Query Command
@@ -124,6 +124,24 @@ The `convert-data` command takes a SQL query as input, executes, then verifies a
 This project uses example databases generated for MySQL use.
 
 - Employees DB: https://github.com/datacharmer/test_db
+
+## Location of experiment statistics
+The result data/experimental statistics for each run are written to a csv file located at:
+/ICDB/src/main/resources/statistics
+
+## Statistics
+Query Fetch Size -> number of tuples fetched
+Query Conversion Time -> time to convert the SQL query to ICDB query
+Data Fetch Time -> Time to fetch the required data by ICDB
+Verification Time -> time required to verify the fetched data
+Execution Time -> Time required to execute the query after verification
+Aggregate Operation Time -> Time to locally compute aggregate function (sum, min, max ...)
+Aggregate Record(IC) Fetch Time -> Time to fetch the Integrity Codes by the ICDB client
+Aggregate Sig Generation time -> Time to generate Aggregate Integrity Code by AIC generator
+ICRL revoke time -> Time required to revoke serials for deleted/updated data
+Total Data Size (Bytes) -> Size of data targetted by SQL query
+Total Serial Size (Bytes) -> Corresponding serials of the data targetted by SQL query
+Total IC Size (Bytes) -> Corresponding ICs of the data targetted by SQL query
 
 ## Troubleshooting
 
